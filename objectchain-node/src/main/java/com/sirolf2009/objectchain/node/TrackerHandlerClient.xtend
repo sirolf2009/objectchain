@@ -16,7 +16,6 @@ import org.eclipse.xtend.lib.annotations.Data
 	
 	override protected channelRead0(ChannelHandlerContext ctx, String msg) throws Exception {
 		onTrackersReceived.accept(gson.fromJson(msg, listType))
-		ctx.disconnect()
 	}
 	
 	override exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {

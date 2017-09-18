@@ -33,7 +33,7 @@ class Tracker {
 					override protected initChannel(SocketChannel channel) throws Exception {
 						channel.pipeline().addLast(new StringDecoder())
 						channel.pipeline().addLast(new StringEncoder())
-						channel.pipeline.addLast(new TrackerHandler(ips, gson))
+						channel.pipeline().addLast(new TrackerHandler(ips, gson))
 					}
 
 				})

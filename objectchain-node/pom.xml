@@ -19,6 +19,11 @@
 			<artifactId>objectchain-network</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>com.sirolf2009</groupId>
+			<artifactId>objectchain-common</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 	</dependencies>
 
 </project>
