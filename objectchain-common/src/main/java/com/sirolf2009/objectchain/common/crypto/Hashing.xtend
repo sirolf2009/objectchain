@@ -17,7 +17,7 @@ class Hashing {
 		return toHexString((hash(msg.getBytes(encoding))))
 	}
 	
-	def static toByteArray(String hex) {
+	def static List<Byte> toByteArray(String hex) {
 		val bytes = new ArrayList()
 		for(var i = 0; i < hex.length(); i+= 2) {
 			bytes.add(((Character.digit(hex.charAt(i), 16) << 4) + Character.digit(hex.charAt(i+1), 16)) as byte)
@@ -30,12 +30,24 @@ class Hashing {
 	}
 	
 	def static toHexString(byte b) {
-		return Integer.toString(b.bitwiseAnd(0xFF) + 0x100, 16)
+		val string = Integer.toString(b.bitwiseAnd(0xFF), 16)
+		if(string.length() < 2) {
+			return "0"+string
+		} else {
+			return string
+		}
 	}
 	
 	def static doubleHash(List<Byte> bytes) {
 		val digester = messageDigest
 		return digester.digest(digester.digest(bytes))
+	}
+	
+	def static doubleHash(List<Byte> bytes, List<Byte> bytes2) {
+		val digester = messageDigest
+		digester.update(bytes)
+		digester.update(bytes2)
+		return digester.digest(digester.digest())
 	}
 	
 	def static hash(List<Byte> bytes) {

@@ -8,13 +8,23 @@ class TestHashing {
 	@Test
 	def void testBlock125552() {
 		val hex = "01000000" + "81cd02ab7e569e8bcd9317e2fe99f2de44d49ab2b8851ba4a308000000000000" + "e320b6c2fffc8d750423db8b1eb942ae710e951ed797f7affc8892b0f1fc122b" + "c7f5d74d" + "f2b9441a" + "42a14695"
-		println(Hashing.hash(hex))
+		val hashed = Hashing.doubleHash(Hashing.toByteArray(hex))
+		Assert.assertEquals("1dbd981fe6985776b644b173a4d0385ddc1aa2a829688d1e0000000000000000", Hashing.toHexString(hashed))
+		Assert.assertEquals("00000000000000001e8d6829a8a21adc5d38d0a473b144b6765798e61f98bd1d", Hashing.toHexString(hashed.reverseView()))
+	}
+	
+	@Test
+	def void roundTripHex() {
+		val msg = "Hello World"
+		val hex = Hashing.toHexString(msg.getBytes("UTF-8"))
+		val newMsg = new String(Hashing.toByteArray(hex), "UTF-8")
+		Assert.assertEquals(msg, newMsg)
 	}
 
 	@Test
 	def void hashString() {
 		val msg = "Hello World"
-		Assert.assertEquals("1a51911a61d410b1f412014014a1011171331cf1b71b11901d612c1651bf10b1cd1a312b1571b21771d91ad19f11416e", Hashing.hash(msg))
+		Assert.assertEquals("a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b277d9ad9f146e", Hashing.hash(msg))
 	}
-
+	
 }
