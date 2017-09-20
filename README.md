@@ -25,8 +25,8 @@ Note that while I've given a Bitcoin example, this system is not limited to cryp
 ### Network
 
 * Communication protocol between senders and receivers
-** Turns the models defined in common into bytes and vice versa
-** Defines a small framework to turn the custom models from the application into bytes and vice versa
+  * Turns the models defined in common into bytes and vice versa
+  * Defines a small framework to turn the custom models from the application into bytes and vice versa
 
 ### Node
 
