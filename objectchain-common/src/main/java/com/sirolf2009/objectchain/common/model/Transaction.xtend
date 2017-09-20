@@ -1,5 +1,6 @@
 package com.sirolf2009.objectchain.common.model
 
+import com.google.gson.Gson
 import com.google.gson.JsonObject
 import java.security.KeyPair
 import java.security.PrivateKey
@@ -7,6 +8,7 @@ import java.security.PublicKey
 import org.eclipse.xtend.lib.annotations.Data
 
 import static extension com.sirolf2009.objectchain.common.crypto.CryptoHelper.*
+import static extension com.sirolf2009.objectchain.common.crypto.Hashing.*
 
 @Data class Transaction {
 	
@@ -29,6 +31,10 @@ import static extension com.sirolf2009.objectchain.common.crypto.CryptoHelper.*
 		this.object = object
 		this.signature = signature
 		this.publicKey = publicKey
+	}
+	
+	def hash() {
+		new Gson().toJson(this).doubleHashLittleEndian()
 	}
 	
 	def verifySignature() {

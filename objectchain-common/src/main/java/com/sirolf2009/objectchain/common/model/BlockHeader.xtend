@@ -1,8 +1,11 @@
 package com.sirolf2009.objectchain.common.model
 
+import com.google.gson.Gson
+import java.util.Date
 import java.util.List
 import org.eclipse.xtend.lib.annotations.Data
-import java.util.Date
+
+import static extension com.sirolf2009.objectchain.common.crypto.Hashing.*
 
 @Data class BlockHeader {
 	
@@ -10,7 +13,11 @@ import java.util.Date
 	val List<Byte> previousBlock
 	val List<Byte> merkleRoot
 	val Date time
-	val List<Byte> bits
+	val long bits
 	val int nonce
+	
+	def hash() {
+		new Gson().toJson(this).doubleHashLittleEndian()
+	}
 	
 }
