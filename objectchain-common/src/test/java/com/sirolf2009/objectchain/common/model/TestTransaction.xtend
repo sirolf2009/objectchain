@@ -7,7 +7,7 @@ import org.junit.Assert
 import org.junit.Test
 
 class TestTransaction {
-	
+
 	@Test
 	def void testVerification() {
 		val gson = new Gson()
@@ -19,10 +19,10 @@ class TestTransaction {
 		val keys = Keys.generateAssymetricPair()
 		val transaction = new Transaction(0, object, keys)
 		Assert.assertTrue(transaction.verifySignature())
-		
+
 		val eve = Keys.generateAssymetricPair()
 		val maliciousTransaction = new Transaction(0, object, eve.private, keys.public)
 		Assert.assertFalse(maliciousTransaction.verifySignature())
 	}
-	
+
 }

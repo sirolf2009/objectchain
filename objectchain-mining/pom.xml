@@ -8,11 +8,9 @@
 		<artifactId>objectchain</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
-
-	<artifactId>objectchain-node</artifactId>
-
-	<name>objectchain-node</name>
-
+	<artifactId>objectchain-mining</artifactId>
+	<name>objectchain-mining</name>
+	
 	<dependencies>
 		<dependency>
 			<groupId>com.sirolf2009</groupId>
@@ -20,5 +18,4 @@
 			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
-
 </project>

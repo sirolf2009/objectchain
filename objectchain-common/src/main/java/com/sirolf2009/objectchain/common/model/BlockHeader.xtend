@@ -1,23 +1,18 @@
 package com.sirolf2009.objectchain.common.model
 
-import com.google.gson.Gson
+import com.sirolf2009.objectchain.common.interfaces.IBlockHeader
+import java.math.BigInteger
 import java.util.Date
 import java.util.List
 import org.eclipse.xtend.lib.annotations.Data
 
-import static extension com.sirolf2009.objectchain.common.crypto.Hashing.*
-
-@Data class BlockHeader {
+@Data class BlockHeader implements IBlockHeader {
 	
 	val short version = 1 as short
 	val List<Byte> previousBlock
 	val List<Byte> merkleRoot
 	val Date time
-	val long bits
+	val BigInteger target
 	val int nonce
-	
-	def hash() {
-		new Gson().toJson(this).doubleHashLittleEndian()
-	}
 	
 }

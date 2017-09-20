@@ -1,10 +1,15 @@
 package com.sirolf2009.objectchain.common
 
 import com.sirolf2009.objectchain.common.crypto.Hashing
+import com.sirolf2009.objectchain.common.model.Transaction
 import java.util.ArrayList
 import java.util.List
 
 class MerkleTree {
+	
+	def public static String merkleTreeTransactions(List<Transaction> hashes) {
+		return merkleTreeHex(hashes.map[hash()])
+	}
 	
 	def public static String merkleTreeHex(List<String> hashes) {
 		return Hashing.toHexString(merkleTree(hashes.map[Hashing.toByteArray(it)]))

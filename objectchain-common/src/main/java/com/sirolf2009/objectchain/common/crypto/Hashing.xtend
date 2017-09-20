@@ -21,6 +21,10 @@ class Hashing {
 		return toHexString(doubleHash(msg.getBytes(encoding).reverseView()))
 	}
 	
+	def static doubleHashLittleEndian2(String msg) {
+		return toHexString(doubleHash(msg.getBytes(encoding)).reverseView())
+	}
+	
 	def static doubleHash(String msg) {
 		return toHexString(doubleHash(msg.getBytes(encoding)))
 	}
