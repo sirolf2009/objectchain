@@ -20,6 +20,13 @@ class TestHashing {
 		val newMsg = new String(Hashing.toByteArray(hex), "UTF-8")
 		Assert.assertEquals(msg, newMsg)
 	}
+	
+	@Test
+	def void doubleHash() {
+		val left = "aa"
+		val right = "bb"
+		Assert.assertEquals("f15813fa4b03e4569a24340601ee233a4f5fde24a1a51e094409f6ae3a6e9233", Hashing.doubleHashHex(left, right))
+	}
 
 	@Test
 	def void hashString() {

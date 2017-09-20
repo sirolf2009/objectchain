@@ -9,8 +9,20 @@ class Hashing {
 	public static val algorithm = "SHA-256"
 	public static val encoding = "UTF-8"
 	
+	def static doubleHashHex(String left, String right) {
+		return toHexString(doubleHash(toByteArray(left), toByteArray(right)))
+	}
+	
+	def static doubleHashHex(String msg) {
+		return toHexString(doubleHash(toByteArray(msg)))
+	}
+	
 	def static doubleHash(String msg) {
 		return toHexString(doubleHash(msg.getBytes(encoding)))
+	}
+	
+	def static hashHex(String msg) {
+		return toHexString(doubleHash(toByteArray(msg)))
 	}
 	
 	def static hash(String msg) {
