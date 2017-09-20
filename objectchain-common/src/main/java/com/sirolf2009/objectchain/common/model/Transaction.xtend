@@ -1,44 +1,42 @@
 package com.sirolf2009.objectchain.common.model
 
-import com.google.gson.Gson
-import com.google.gson.JsonObject
+import com.sirolf2009.objectchain.common.interfaces.IHashable
 import java.security.KeyPair
 import java.security.PrivateKey
 import java.security.PublicKey
 import org.eclipse.xtend.lib.annotations.Data
 
 import static extension com.sirolf2009.objectchain.common.crypto.CryptoHelper.*
-import static extension com.sirolf2009.objectchain.common.crypto.Hashing.*
 
-@Data class Transaction {
+@Data class Transaction implements Comparable<Transaction>, IHashable {
 	
 	val short version = 1 as short
 	val int objectID
-	val JsonObject object
+	val Object object
 	val String signature
 	val PublicKey publicKey
 	
-	new(int objectID, JsonObject object, KeyPair keys) {
+	new(int objectID, Object object, KeyPair keys) {
 		this(objectID, object, keys.private, keys.public)
 	}
 	
-	new(int objectID, JsonObject object, PrivateKey privateKey, PublicKey publicKey) {
+	new(int objectID, Object object, PrivateKey privateKey, PublicKey publicKey) {
 		this(objectID, object, object.toString().sign(privateKey), publicKey)
 	}
 	
-	new(int objectID, JsonObject object, String signature, PublicKey publicKey) {
+	new(int objectID, Object object, String signature, PublicKey publicKey) {
 		this.objectID = objectID
 		this.object = object
 		this.signature = signature
 		this.publicKey = publicKey
 	}
 	
-	def hash() {
-		new Gson().toJson(this).doubleHashLittleEndian()
-	}
-	
 	def verifySignature() {
 		return verify(object.toString(), signature, publicKey)
+	}
+	
+	override compareTo(Transaction other) {
+		return hash().compareTo(other.hash())
 	}
 	
 }

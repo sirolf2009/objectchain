@@ -22,6 +22,6 @@ class BlockHeaderMutable implements IBlockHeader {
 	val List<Byte> merkleRoot
 	var Date time
 	val BigInteger target
-	val int nonce
+	var int nonce
 	
 }

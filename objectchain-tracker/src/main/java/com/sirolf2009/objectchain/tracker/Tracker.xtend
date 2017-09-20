@@ -1,49 +1,70 @@
 package com.sirolf2009.objectchain.tracker
 
-import com.google.gson.Gson
-import io.netty.bootstrap.ServerBootstrap
-import io.netty.channel.ChannelInitializer
-import io.netty.channel.ChannelOption
-import io.netty.channel.nio.NioEventLoopGroup
-import io.netty.channel.socket.SocketChannel
-import io.netty.channel.socket.nio.NioServerSocketChannel
-import io.netty.handler.codec.string.StringDecoder
-import io.netty.handler.codec.string.StringEncoder
-import io.netty.handler.logging.LogLevel
-import io.netty.handler.logging.LoggingHandler
+import com.esotericsoftware.kryonet.Connection
+import com.esotericsoftware.kryonet.Listener
+import com.esotericsoftware.kryonet.Server
+import com.sirolf2009.objectchain.network.KryoRegistrationTracker
+import com.sirolf2009.objectchain.network.tracker.TrackedNode
+import com.sirolf2009.objectchain.network.tracker.TrackerList
+import com.sirolf2009.objectchain.network.tracker.TrackerRequest
 import java.util.TreeSet
+import org.slf4j.LoggerFactory
+import com.esotericsoftware.kryonet.FrameworkMessage.KeepAlive
 
 class Tracker {
+	
+	static val log = LoggerFactory.getLogger(Tracker)
+	val int port
+	val nodes = new TreeSet<TrackedNode>()
+	
+	new(int port) {
+		this.port = port
+	}
+	
+	def start() {
+		log.info("Starting tracker")
+
+		val server = new Server()
+		KryoRegistrationTracker.register(server.kryo)
+		server.bind(port)
+
+		server.addListener(new Listener() {
+			
+			override connected(Connection connection) {
+				connection.name = connection.remoteAddressTCP.address.hostAddress
+				log.info("{} connected", connection)
+			}
+			
+			override received(Connection connection, Object object) {
+				if(object instanceof KeepAlive) {
+					return
+				}
+				log.debug("{} send {}", connection, object)
+				if(object instanceof TrackerRequest) {
+					log.info("{} requested tracker list", connection)
+					val response = new TrackerList() => [
+						tracked = nodes.toList()
+					]
+					connection.sendTCP(response)
+					nodes.add(new TrackedNode() => [
+						it.host = connection.remoteAddressTCP.address.hostAddress
+						it.port = object.nodePort
+					])
+					log.debug("send {} the tracker list", connection)
+				}
+			}
+			
+			override disconnected(Connection connection) {
+				log.info("{} disconnected", connection)
+			}
+
+		})
+		
+		server.start()
+	}
 
 	def static void main(String[] args) {
-		val bossGroup = new NioEventLoopGroup(1)
-		val workerGroup = new NioEventLoopGroup()
-
-		val ips = new TreeSet()
-		val gson = new Gson()
-
-		try {
-			val bootstrap = new ServerBootstrap() => [
-				group(bossGroup, workerGroup)
-				channel(NioServerSocketChannel)
-				option(ChannelOption.SO_BACKLOG, 100)
-				handler(new LoggingHandler(LogLevel.INFO))
-				childHandler(new ChannelInitializer<SocketChannel>() {
-
-					override protected initChannel(SocketChannel channel) throws Exception {
-						channel.pipeline().addLast(new StringDecoder())
-						channel.pipeline().addLast(new StringEncoder())
-						channel.pipeline().addLast(new TrackerHandler(ips, gson))
-					}
-
-				})
-			]
-			val channelFuture = bootstrap.bind(12345).sync()
-			channelFuture.channel().closeFuture().sync()
-		} finally {
-			bossGroup.shutdownGracefully()
-			workerGroup.shutdownGracefully()
-		}
+		new Tracker(2012).start()
 	}
 
 }
