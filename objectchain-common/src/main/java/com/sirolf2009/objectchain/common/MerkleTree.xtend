@@ -4,11 +4,12 @@ import com.sirolf2009.objectchain.common.crypto.Hashing
 import com.sirolf2009.objectchain.common.model.Transaction
 import java.util.ArrayList
 import java.util.List
+import com.esotericsoftware.kryo.Kryo
 
 class MerkleTree {
 	
-	def public static String merkleTreeTransactions(List<Transaction> hashes) {
-		return merkleTreeHex(hashes.map[hash()])
+	def public static List<Byte> merkleTreeTransactions(Kryo kryo, List<Transaction> hashes) {
+		return merkleTree(hashes.map[hash(kryo)])
 	}
 	
 	def public static String merkleTreeHex(List<String> hashes) {

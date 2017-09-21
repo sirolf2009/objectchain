@@ -2,7 +2,7 @@
 
 Objectchain is a framework for creating peer-to-peer blockchains. It is written in Eclipse Xtend and therefore compiles to the JVM. It is inspired by, but not a complete replica of the Bitcoin Blockchain. The aim of the project is to provide all the structure of the blockchain, so that users would only need to implement the "rules" and the models of the application. 
 
-Models must JSon compatible and would be something like:
+Models must Kryo compatible and would be something like:
 * BTC is a number that has a public key, a value, an input Transaction and an Output transaction
 * A Transaction is a public key (sender), another public key (receiver) and a collection of BTC
 
@@ -12,6 +12,11 @@ A rule would be something like, if Alice submits a Transaction
 * If all the rules resolve to true, this transaction becomes the output of all the included BTC
 
 Note that while I've given a Bitcoin example, this system is not limited to cryptocurrencies. If you would like to make, for instance, a file sharing system then that would still be possible. The models and rules would simply need to be defined differently.
+
+## Dependencies
+
+This framework only has two dependencies. Namely https://github.com/EsotericSoftware/kryo and https://github.com/EsotericSoftware/kryonet.
+They are used for the serializing and networking.
 
 ## Module Overview
 

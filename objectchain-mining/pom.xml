@@ -14,7 +14,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>com.sirolf2009</groupId>
-			<artifactId>objectchain-network</artifactId>
+			<artifactId>objectchain-node</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 	</dependencies>

@@ -1,14 +1,18 @@
 package com.sirolf2009.objectchain.node
 
+import com.esotericsoftware.kryo.Kryo
 import com.esotericsoftware.kryonet.Client
 import com.esotericsoftware.kryonet.Connection
 import com.esotericsoftware.kryonet.FrameworkMessage.KeepAlive
 import com.esotericsoftware.kryonet.Listener
 import com.esotericsoftware.kryonet.Server
+import com.sirolf2009.objectchain.common.model.BlockChain
 import com.sirolf2009.objectchain.common.model.Transaction
 import com.sirolf2009.objectchain.network.KryoRegistrationNode
 import com.sirolf2009.objectchain.network.KryoRegistrationTracker
 import com.sirolf2009.objectchain.network.node.NewTransaction
+import com.sirolf2009.objectchain.network.node.SyncRequest
+import com.sirolf2009.objectchain.network.node.SyncResponse
 import com.sirolf2009.objectchain.network.tracker.TrackedNode
 import com.sirolf2009.objectchain.network.tracker.TrackerList
 import com.sirolf2009.objectchain.network.tracker.TrackerRequest
@@ -21,21 +25,31 @@ import java.util.concurrent.ArrayBlockingQueue
 import java.util.function.Consumer
 import org.slf4j.LoggerFactory
 
+import static extension com.sirolf2009.objectchain.common.crypto.Hashing.*
+import org.eclipse.xtend.lib.annotations.Accessors
+
+@Accessors
 class Node {
 
 	static val log = LoggerFactory.getLogger(Node)
+	val Kryo kryo
 	val List<String> trackers
 	val int nodePort
-	val Set<Transaction> floatingTransactions
+	
 	val List<Client> clients
-
 	var Server server
+	var boolean synchronised
+	
+	val BlockChain blockchain
+	val Set<Transaction> floatingTransactions
 
-	new(List<String> trackers, int nodePort) {
+	new(Kryo kryo, List<String> trackers, int nodePort) {
+		this.kryo = kryo
 		this.trackers = trackers
 		this.nodePort = nodePort
 		this.floatingTransactions = new TreeSet()
 		this.clients = new ArrayList()
+		this.blockchain = new BlockChain(kryo, new ArrayList())
 	}
 
 	def start() {
@@ -54,6 +68,7 @@ class Node {
 			override connected(Connection connection) {
 				connection.name = connection.remoteAddressTCP.address.hostAddress+":"+connection.remoteAddressTCP.port
 				log.info("{} connected to us", connection)
+				onNewConnection(connection)
 			}
 
 			override received(Connection connection, Object object) {
@@ -88,6 +103,7 @@ class Node {
 				override connected(Connection connection) {
 					connection.name = host + ":" + port
 					log.info("Connected to peer {}", connection)
+					onNewConnection(connection)
 				}
 
 				override received(Connection connection, Object object) {
@@ -108,16 +124,32 @@ class Node {
 			log.warn("Failed to connect to peer {}:{}", host, port)
 		}
 	}
+	
+	def synchronized onNewConnection(Connection connection) {
+		if(!synchronised) {
+			synchronised = true
+			connection.sendTCP(new SyncRequest() => [
+				if(blockchain.blocks.length() > 0) {
+					lastKnownBlock = Optional.of(blockchain.blocks.last.hash(kryo))
+				}
+				lastKnownBlock = Optional.empty()
+			])
+		}
+	}
 
 	def handleNewObject(Connection connection, Object object) {
 		log.debug("{} send {}", connection, object)
 		if(object instanceof NewTransaction) {
 			handleNewTransaction(connection, object)
+		} if(object instanceof SyncResponse) {
+			handleSyncResponse(connection, object)
+		} else {
+			log.error("I don't know what to do with {}", object)
 		}
 	}
 
 	def handleNewTransaction(Connection connection, NewTransaction newTransaction) {
-		log.info("{} send new transaction {}", connection, newTransaction.transaction.hash())
+		log.info("{} send new transaction {}", connection, newTransaction.transaction.hash(kryo).toHexString())
 		if(newTransaction.transaction.verifySignature()) {
 			if(floatingTransactions.add(newTransaction.transaction)) {
 				log.info("propagating new transaction")
@@ -125,6 +157,13 @@ class Node {
 			}
 		} else {
 			log.warn("{} send transaction {}, but I could not verify the signature!", connection, newTransaction)
+		}
+	}
+
+	def handleSyncResponse(Connection connection, SyncResponse sync) {
+		log.info("{} send sync response", connection)
+		if(sync.newBlocks !== null && sync.newBlocks.size() > 0) {
+			blockchain.blocks.addAll(sync.newBlocks)
 		}
 	}
 
@@ -176,17 +215,6 @@ class Node {
 
 		client.connect(5000, tracker, 2012)
 		return queue.take()
-	}
-
-	def static void main(String[] args) {
-		val port = {
-			if(args.length() == 0) {
-				4567
-			} else {
-				Integer.parseInt(args.get(0))
-			}
-		}
-		new Node(#["localhost"], port).start()
 	}
 
 }

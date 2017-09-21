@@ -8,7 +8,7 @@ import org.eclipse.xtend.lib.annotations.Data
 
 import static extension com.sirolf2009.objectchain.common.crypto.CryptoHelper.*
 
-@Data class Transaction implements Comparable<Transaction>, IHashable {
+@Data class Transaction implements IHashable {
 	
 	val short version = 1 as short
 	val int objectID
@@ -33,10 +33,6 @@ import static extension com.sirolf2009.objectchain.common.crypto.CryptoHelper.*
 	
 	def verifySignature() {
 		return verify(object.toString(), signature, publicKey)
-	}
-	
-	override compareTo(Transaction other) {
-		return hash().compareTo(other.hash())
 	}
 	
 }

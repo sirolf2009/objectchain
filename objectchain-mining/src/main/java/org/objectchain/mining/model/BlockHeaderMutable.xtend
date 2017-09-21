@@ -24,4 +24,8 @@ class BlockHeaderMutable implements IBlockHeader {
 	val BigInteger target
 	var int nonce
 	
+	def immutable() {
+		return new BlockHeader(previousBlock, merkleRoot, time, target, nonce)
+	}
+	
 }
