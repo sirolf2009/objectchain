@@ -7,10 +7,8 @@ import com.esotericsoftware.kryonet.FrameworkMessage.KeepAlive
 import com.esotericsoftware.kryonet.Listener
 import com.esotericsoftware.kryonet.Server
 import com.sirolf2009.objectchain.common.model.BlockChain
-import com.sirolf2009.objectchain.common.model.Transaction
 import com.sirolf2009.objectchain.network.KryoRegistrationNode
 import com.sirolf2009.objectchain.network.KryoRegistrationTracker
-import com.sirolf2009.objectchain.network.node.NewTransaction
 import com.sirolf2009.objectchain.network.node.SyncRequest
 import com.sirolf2009.objectchain.network.node.SyncResponse
 import com.sirolf2009.objectchain.network.tracker.TrackedNode
@@ -27,6 +25,8 @@ import org.slf4j.LoggerFactory
 
 import static extension com.sirolf2009.objectchain.common.crypto.Hashing.*
 import org.eclipse.xtend.lib.annotations.Accessors
+import com.sirolf2009.objectchain.common.model.Mutation
+import com.sirolf2009.objectchain.network.node.NewMutation
 
 @Accessors
 class Node {
@@ -41,13 +41,13 @@ class Node {
 	var boolean synchronised
 	
 	val BlockChain blockchain
-	val Set<Transaction> floatingTransactions
+	val Set<Mutation> floatingMutations
 
 	new(Kryo kryo, List<String> trackers, int nodePort) {
 		this.kryo = kryo
 		this.trackers = trackers
 		this.nodePort = nodePort
-		this.floatingTransactions = new TreeSet()
+		this.floatingMutations = new TreeSet()
 		this.clients = new ArrayList()
 		this.blockchain = new BlockChain(kryo, new ArrayList())
 	}
@@ -139,8 +139,8 @@ class Node {
 
 	def handleNewObject(Connection connection, Object object) {
 		log.debug("{} send {}", connection, object)
-		if(object instanceof NewTransaction) {
-			handleNewTransaction(connection, object)
+		if(object instanceof NewMutation) {
+			handleNewMutations(connection, object)
 		} if(object instanceof SyncResponse) {
 			handleSyncResponse(connection, object)
 		} else {
@@ -148,15 +148,15 @@ class Node {
 		}
 	}
 
-	def handleNewTransaction(Connection connection, NewTransaction newTransaction) {
-		log.info("{} send new transaction {}", connection, newTransaction.transaction.hash(kryo).toHexString())
-		if(newTransaction.transaction.verifySignature()) {
-			if(floatingTransactions.add(newTransaction.transaction)) {
-				log.info("propagating new transaction")
-				broadcast(newTransaction.transaction, Optional.of(connection))
+	def handleNewMutations(Connection connection, NewMutation newMutations) {
+		log.info("{} send new mutation {}", connection, newMutations.getMutations.hash(kryo).toHexString())
+		if(newMutations.getMutations.verifySignature()) {
+			if(floatingMutations.add(newMutations.getMutations)) {
+				log.info("propagating new mutation")
+				broadcast(newMutations.getMutations, Optional.of(connection))
 			}
 		} else {
-			log.warn("{} send transaction {}, but I could not verify the signature!", connection, newTransaction)
+			log.warn("{} send mutation {}, but I could not verify the signature!", connection, newMutations)
 		}
 	}
 

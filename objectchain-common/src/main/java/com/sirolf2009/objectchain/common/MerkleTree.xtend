@@ -1,14 +1,14 @@
 package com.sirolf2009.objectchain.common
 
 import com.sirolf2009.objectchain.common.crypto.Hashing
-import com.sirolf2009.objectchain.common.model.Transaction
 import java.util.ArrayList
 import java.util.List
 import com.esotericsoftware.kryo.Kryo
+import com.sirolf2009.objectchain.common.model.Mutation
 
 class MerkleTree {
 	
-	def public static List<Byte> merkleTreeTransactions(Kryo kryo, List<Transaction> hashes) {
+	def public static List<Byte> merkleTreeMutations(Kryo kryo, List<Mutation> hashes) {
 		return merkleTree(hashes.map[hash(kryo)])
 	}
 	

@@ -1,7 +1,6 @@
 package com.sirolf2009.objectchain.example.node
 
 import com.sirolf2009.objectchain.common.crypto.Keys
-import com.sirolf2009.objectchain.common.model.Transaction
 import com.sirolf2009.objectchain.example.common.ChatKryo
 import com.sirolf2009.objectchain.example.common.model.Message
 import com.sirolf2009.objectchain.node.Node
@@ -9,6 +8,7 @@ import java.security.KeyPair
 import java.util.List
 import java.util.Scanner
 import org.apache.logging.log4j.LogManager
+import com.sirolf2009.objectchain.common.model.Mutation
 
 class ChatNode extends Node {
 	
@@ -29,7 +29,7 @@ class ChatNode extends Node {
 			val message = new Message() => [
 				message = line
 			]
-			broadcast(new Transaction(0, message, keys))
+			broadcast(new Mutation(0, message, keys))
 		}
 	}
 	

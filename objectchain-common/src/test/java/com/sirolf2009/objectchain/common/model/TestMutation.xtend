@@ -4,7 +4,7 @@ import com.sirolf2009.objectchain.common.crypto.Keys
 import org.junit.Assert
 import org.junit.Test
 
-class TestTransaction {
+class TestMutation {
 
 	@Test
 	def void testVerification() {
@@ -12,12 +12,12 @@ class TestTransaction {
 			msg = "Hello World"
 		]
 		val keys = Keys.generateAssymetricPair()
-		val transaction = new Transaction(0, msg, keys)
-		Assert.assertTrue(transaction.verifySignature())
+		val mutation = new Mutation(0, msg, keys)
+		Assert.assertTrue(mutation.verifySignature())
 
 		val eve = Keys.generateAssymetricPair()
-		val maliciousTransaction = new Transaction(0, msg, eve.private, keys.public)
-		Assert.assertFalse(maliciousTransaction.verifySignature())
+		val maliciousMutation = new Mutation(0, msg, eve.private, keys.public)
+		Assert.assertFalse(maliciousMutation.verifySignature())
 	}
 
 }

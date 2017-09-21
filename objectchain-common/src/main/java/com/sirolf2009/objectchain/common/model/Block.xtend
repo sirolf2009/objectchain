@@ -11,13 +11,13 @@ import static extension com.sirolf2009.objectchain.common.crypto.Hashing.toHexSt
 @Data class Block implements IBlock {
 	
 	val BlockHeader header
-	val List<Transaction> transactions
+	val List<Mutation> mutations
 	
 	def verify(Kryo kryo) {
-		if(transactions.findFirst[!verifySignature()] !== null) {
+		if(mutations.findFirst[!verifySignature()] !== null) {
 			return false
 		}
-		if(!MerkleTree.merkleTreeTransactions(kryo, transactions).equals(header.merkleRoot.toHexString())) {
+		if(!MerkleTree.merkleTreeMutations(kryo, mutations).equals(header.merkleRoot.toHexString())) {
 			return false
 		}
 		return true

@@ -8,7 +8,7 @@ import org.eclipse.xtend.lib.annotations.Data
 
 import static extension com.sirolf2009.objectchain.common.crypto.CryptoHelper.*
 
-@Data class Transaction implements IHashable {
+@Data class Mutation implements IHashable {
 	
 	val short version = 1 as short
 	val int objectID

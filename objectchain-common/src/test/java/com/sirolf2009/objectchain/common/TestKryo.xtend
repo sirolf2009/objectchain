@@ -4,7 +4,7 @@ import com.esotericsoftware.kryo.Kryo
 import com.sirolf2009.objectchain.common.model.Block
 import com.sirolf2009.objectchain.common.model.BlockHeader
 import com.sirolf2009.objectchain.common.model.Message
-import com.sirolf2009.objectchain.common.model.Transaction
+import com.sirolf2009.objectchain.common.model.Mutation
 
 class TestKryo {
 	
@@ -12,7 +12,7 @@ class TestKryo {
 		val kryo = new Kryo()
 		kryo.register(Block)
 		kryo.register(BlockHeader)
-		kryo.register(Transaction)
+		kryo.register(Mutation)
 		
 		kryo.register(Message)
 		return kryo
