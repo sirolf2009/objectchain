@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.sirolf2009</groupId>
+    <artifactId>objectchain</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+  </parent>
+  <artifactId>objectchain-example</artifactId>
+  <name>objectchain-example</name>
+  <packaging>pom</packaging>
+  
+  <modules>
+  	<module>objectchain-example-common</module>
+  	<module>objectchain-example-node</module>
+  	<module>objectchain-example-tracker</module>
+  </modules>
+</project>

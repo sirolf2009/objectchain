@@ -63,8 +63,4 @@ class Tracker {
 		server.start()
 	}
 
-	def static void main(String[] args) {
-		new Tracker(2012).start()
-	}
-
 }

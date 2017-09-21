@@ -5,18 +5,15 @@
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>com.sirolf2009</groupId>
-		<artifactId>objectchain</artifactId>
+		<artifactId>objectchain-example</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
-
-	<artifactId>objectchain-node</artifactId>
-
-	<name>objectchain-node</name>
+	<artifactId>objectchain-example-common</artifactId>
 
 	<dependencies>
 		<dependency>
 			<groupId>com.sirolf2009</groupId>
-			<artifactId>objectchain-network</artifactId>
+			<artifactId>objectchain-common</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 	</dependencies>

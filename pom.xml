@@ -15,7 +15,8 @@
 		<module>objectchain-tracker</module>
 		<module>objectchain-node</module>
 		<module>objectchain-mining</module>
-	</modules>
+    <module>objectchain-example</module>
+  </modules>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

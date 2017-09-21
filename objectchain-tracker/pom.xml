@@ -17,23 +17,6 @@
 			<artifactId>objectchain-network</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-slf4j-impl</artifactId>
-			<version>2.9.0</version>
-		</dependency>
 	</dependencies>
-
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>exec-maven-plugin</artifactId>
-				<version>1.6.0</version>
-				<configuration>
-					<mainClass>com.sirolf2009.objectchain.tracker.Tracker</mainClass>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
+	
 </project>

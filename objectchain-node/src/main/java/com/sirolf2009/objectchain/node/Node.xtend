@@ -166,6 +166,10 @@ class Node {
 			blockchain.blocks.addAll(sync.newBlocks)
 		}
 	}
+	
+	def broadcast(Object object) {
+		broadcast(object, Optional.empty())
+	}
 
 	def broadcast(Object object, Optional<Connection> skip) {
 		log.info("Broadcasting " + object)
