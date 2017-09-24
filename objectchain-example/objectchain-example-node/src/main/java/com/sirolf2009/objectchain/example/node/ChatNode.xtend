@@ -42,7 +42,7 @@ class ChatNode extends Node {
 			}
 		}
 		//trackers are hardcoded in your application, they provide the initial list of peers when a node joins the network
-		new ChatNode(#["localhost"], port, Keys.generateAssymetricPair())
+		new ChatNode(#["localhost"], port, Keys.generateAssymetricPair()).start()
 	}
 	
 }

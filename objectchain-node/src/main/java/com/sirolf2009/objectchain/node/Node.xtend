@@ -6,27 +6,31 @@ import com.esotericsoftware.kryonet.Connection
 import com.esotericsoftware.kryonet.FrameworkMessage.KeepAlive
 import com.esotericsoftware.kryonet.Listener
 import com.esotericsoftware.kryonet.Server
+import com.sirolf2009.objectchain.common.model.Block
 import com.sirolf2009.objectchain.common.model.BlockChain
+import com.sirolf2009.objectchain.common.model.BlockHeader
+import com.sirolf2009.objectchain.common.model.Mutation
 import com.sirolf2009.objectchain.network.KryoRegistrationNode
 import com.sirolf2009.objectchain.network.KryoRegistrationTracker
+import com.sirolf2009.objectchain.network.node.NewMutation
 import com.sirolf2009.objectchain.network.node.SyncRequest
 import com.sirolf2009.objectchain.network.node.SyncResponse
 import com.sirolf2009.objectchain.network.tracker.TrackedNode
 import com.sirolf2009.objectchain.network.tracker.TrackerList
 import com.sirolf2009.objectchain.network.tracker.TrackerRequest
+import java.math.BigInteger
 import java.util.ArrayList
+import java.util.Date
 import java.util.List
 import java.util.Optional
 import java.util.Set
 import java.util.TreeSet
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.function.Consumer
+import org.eclipse.xtend.lib.annotations.Accessors
 import org.slf4j.LoggerFactory
 
 import static extension com.sirolf2009.objectchain.common.crypto.Hashing.*
-import org.eclipse.xtend.lib.annotations.Accessors
-import com.sirolf2009.objectchain.common.model.Mutation
-import com.sirolf2009.objectchain.network.node.NewMutation
 
 @Accessors
 class Node {
@@ -35,11 +39,11 @@ class Node {
 	val Kryo kryo
 	val List<String> trackers
 	val int nodePort
-	
+
 	val List<Client> clients
 	var Server server
 	var boolean synchronised
-	
+
 	val BlockChain blockchain
 	val Set<Mutation> floatingMutations
 
@@ -53,7 +57,15 @@ class Node {
 	}
 
 	def start() {
-		getTrackedNodes().forEach[connectToNode(it)]
+		val peers = getTrackedNodes()
+		log.info("Received {} peers", peers.size())
+		if(peers.size() == 0) {
+			log.info("No peers found, creating genesis block")
+			val genesis = new Block(new BlockHeader(newArrayOfSize(0), newArrayOfSize(0), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 0), #[])
+			blockchain.blocks.add(genesis)
+		} else {
+			peers.forEach[connectToNode(it)]
+		}
 		host()
 	}
 
@@ -66,7 +78,7 @@ class Node {
 		server.addListener(new Listener() {
 
 			override connected(Connection connection) {
-				connection.name = connection.remoteAddressTCP.address.hostAddress+":"+connection.remoteAddressTCP.port
+				connection.name = connection.remoteAddressTCP.address.hostAddress + ":" + connection.remoteAddressTCP.port
 				log.info("{} connected to us", connection)
 				onNewConnection(connection)
 			}
@@ -124,7 +136,7 @@ class Node {
 			log.warn("Failed to connect to peer {}:{}", host, port)
 		}
 	}
-	
+
 	def synchronized onNewConnection(Connection connection) {
 		if(!synchronised) {
 			synchronised = true
@@ -141,7 +153,10 @@ class Node {
 		log.debug("{} send {}", connection, object)
 		if(object instanceof NewMutation) {
 			handleNewMutations(connection, object)
-		} if(object instanceof SyncResponse) {
+		}
+		if(object instanceof SyncRequest) {
+			handleSyncRequest(connection, object)
+		} else if(object instanceof SyncResponse) {
 			handleSyncResponse(connection, object)
 		} else {
 			log.error("I don't know what to do with {}", object)
@@ -160,13 +175,34 @@ class Node {
 		}
 	}
 
+	def handleSyncRequest(Connection connection, SyncRequest sync) {
+		log.info("{} send sync request", connection)
+		if(sync.lastKnownBlock !== null && sync.lastKnownBlock.present) {
+			val lastKnownBlock = blockchain.blocks.findFirst[hash(kryo).equals(sync.lastKnownBlock.get())]
+			if(lastKnownBlock !== null) {
+				val newBlocks = blockchain.blocks.subList(blockchain.blocks.indexOf(lastKnownBlock), blockchain.blocks.size() - 1)
+				connection.sendTCP(new SyncResponse() => [
+					it.newBlocks = newBlocks.toArray(newArrayOfSize(newBlocks.size()))
+					it.floatingMutations = floatingMutations.toArray(newArrayOfSize(floatingMutations.size()))
+				])
+			} else {
+				log.warn("{} wanted to sync with an unknown block")
+			}
+		} else {
+			connection.sendTCP(new SyncResponse() => [
+				it.newBlocks = blockchain.blocks.toArray(newArrayOfSize(blockchain.blocks.size()))
+				it.floatingMutations = floatingMutations.toArray(newArrayOfSize(floatingMutations.size()))
+			])
+		}
+	}
+
 	def handleSyncResponse(Connection connection, SyncResponse sync) {
 		log.info("{} send sync response", connection)
 		if(sync.newBlocks !== null && sync.newBlocks.size() > 0) {
 			blockchain.blocks.addAll(sync.newBlocks)
 		}
 	}
-	
+
 	def broadcast(Object object) {
 		broadcast(object, Optional.empty())
 	}
@@ -210,7 +246,7 @@ class Node {
 					queue.add(object)
 				}
 			}
-			
+
 			override disconnected(Connection connection) {
 				log.info("Disconnect from tracker {}", connection)
 			}
