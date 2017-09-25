@@ -3,13 +3,14 @@ package org.objectchain.mining.model
 import com.sirolf2009.objectchain.node.Node
 import java.util.List
 import com.esotericsoftware.kryo.Kryo
+import java.security.KeyPair
 
 abstract class Miner extends Node {
 	
 	var BlockMutable pendingBlock
 
-	new(Kryo kryo, List<String> trackers, int nodePort) {
-		super(kryo, trackers, nodePort)
+	new(Kryo kryo, List<String> trackers, int nodePort, KeyPair keys) {
+		super(kryo, trackers, nodePort, keys)
 	}
 	
 	override start() {

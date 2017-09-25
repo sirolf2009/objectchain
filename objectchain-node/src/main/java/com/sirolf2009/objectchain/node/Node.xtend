@@ -30,6 +30,7 @@ import java.util.function.Consumer
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.slf4j.LoggerFactory
 import com.esotericsoftware.kryonet.KryoSerialization
+import java.security.KeyPair
 
 @Accessors
 abstract class Node {
@@ -38,6 +39,7 @@ abstract class Node {
 	val Kryo kryo
 	val List<String> trackers
 	val int nodePort
+	val KeyPair keys
 
 	val List<Client> clients
 	var Server server
@@ -46,10 +48,11 @@ abstract class Node {
 	val BlockChain blockchain
 	val Set<Mutation> floatingMutations
 
-	new(Kryo kryo, List<String> trackers, int nodePort) {
+	new(Kryo kryo, List<String> trackers, int nodePort, KeyPair keys) {
 		this.kryo = kryo
 		this.trackers = trackers
 		this.nodePort = nodePort
+		this.keys = keys
 		this.floatingMutations = new TreeSet()
 		this.clients = new ArrayList()
 		this.blockchain = new BlockChain(new ArrayList())
@@ -115,6 +118,7 @@ abstract class Node {
 					clients.add(client)
 					connection.name = host + ":" + port
 					log.info("Connected to peer {}", connection)
+					log.info("Connected to {} peer", clients.size())
 					onNewConnection(client.kryo, connection)
 				}
 
@@ -151,7 +155,7 @@ abstract class Node {
 	}
 
 	def handleNewObject(Kryo kryo, Connection connection, Object object) {
-		log.debug("{} send {}", connection, object)
+		log.trace("{} send {}", connection, object)
 		if(object instanceof NewMutation) {
 			handleNewMutations(connection, object)
 		} else if(object instanceof SyncRequest) {
@@ -164,7 +168,7 @@ abstract class Node {
 	}
 
 	def handleNewMutations(Connection connection, NewMutation newMutation) {
-		log.info("{} send new mutation {}", connection, newMutation.getMutation)
+		log.info("{} send new mutation", connection)
 		if(newMutation.getMutation.verifySignature()) {
 			onMutationReceived(newMutation.mutation)
 			if(floatingMutations.add(newMutation.getMutation)) {
@@ -175,7 +179,7 @@ abstract class Node {
 			log.warn("{} send mutation {}, but I could not verify the signature!", connection, newMutation)
 		}
 	}
-	
+
 	def onMutationReceived(Mutation mutation) {
 	}
 
@@ -207,12 +211,20 @@ abstract class Node {
 		}
 	}
 
+	def submitMutation(Object object) {
+		val messageMutation = new Mutation(object, keys)
+		floatingMutations.add(messageMutation)
+		broadcast(new NewMutation() => [
+			mutation = messageMutation
+		])
+	}
+
 	def broadcast(Object object) {
 		broadcast(object, Optional.empty())
 	}
 
 	def broadcast(Object object, Optional<Connection> skip) {
-		log.info("Broadcasting " + object)
+		log.trace("Broadcasting {}", object)
 		val Consumer<Connection> send = [
 			if(!skip.isPresent || it != skip.get()) {
 				log.debug("sending {} to {}", object, it)

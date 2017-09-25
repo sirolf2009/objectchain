@@ -12,21 +12,19 @@ import static extension com.sirolf2009.objectchain.common.crypto.Hashing.*
 @Data class Mutation implements IHashable, Comparable<Mutation> {
 	
 	val short version = 1 as short
-	val int objectID
 	val Object object
 	val String signature
 	val PublicKey publicKey
 	
-	new(int objectID, Object object, KeyPair keys) {
-		this(objectID, object, keys.private, keys.public)
+	new(Object object, KeyPair keys) {
+		this(object, keys.private, keys.public)
 	}
 	
-	new(int objectID, Object object, PrivateKey privateKey, PublicKey publicKey) {
-		this(objectID, object, object.toString().sign(privateKey), publicKey)
+	new(Object object, PrivateKey privateKey, PublicKey publicKey) {
+		this(object, object.toString().sign(privateKey), publicKey)
 	}
 	
-	new(int objectID, Object object, String signature, PublicKey publicKey) {
-		this.objectID = objectID
+	new(Object object, String signature, PublicKey publicKey) {
 		this.object = object
 		this.signature = signature
 		this.publicKey = publicKey
@@ -37,9 +35,7 @@ import static extension com.sirolf2009.objectchain.common.crypto.Hashing.*
 	}
 	
 	override compareTo(Mutation o) {
-		if(objectID.compareTo(o.objectID) != 0) {
-			return objectID.compareTo(o.objectID)
-		} else if(signature.compareTo(o.signature) != 0) {
+		if(signature.compareTo(o.signature) != 0) {
 			return signature.compareTo(o.signature)
 		} else if(signature.compareTo(o.signature) != 0) {
 			return signature.compareTo(o.signature)

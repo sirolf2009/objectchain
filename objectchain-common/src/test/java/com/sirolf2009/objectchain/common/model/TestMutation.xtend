@@ -12,11 +12,11 @@ class TestMutation {
 			msg = "Hello World"
 		]
 		val keys = Keys.generateAssymetricPair()
-		val mutation = new Mutation(0, msg, keys)
+		val mutation = new Mutation(msg, keys)
 		Assert.assertTrue(mutation.verifySignature())
 
 		val eve = Keys.generateAssymetricPair()
-		val maliciousMutation = new Mutation(0, msg, eve.private, keys.public)
+		val maliciousMutation = new Mutation(msg, eve.private, keys.public)
 		Assert.assertFalse(maliciousMutation.verifySignature())
 	}
 

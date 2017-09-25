@@ -17,7 +17,7 @@ class TestSerializerMutation {
 			register(Mutation, new SerializerMutation())
 		]
 		
-		val mutation = new Mutation(0, "Hello World", Keys.generateAssymetricPair())
+		val mutation = new Mutation("Hello World", Keys.generateAssymetricPair())
 		
 		val outBuffer = new ByteArrayOutputStream()
 		val out = new Output(outBuffer)
