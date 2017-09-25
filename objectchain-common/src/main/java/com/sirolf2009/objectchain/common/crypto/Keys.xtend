@@ -31,7 +31,7 @@ class Keys {
 		return keyGenerator.generateKeyPair()
 	}
 	
-	def static readSecretKeyToFile(File file) {
+	def static readSecretKeyFromFile(File file) {
 		return CryptoHelper.secretKey(Files.readAllBytes(file.toPath()))
 	}
 	

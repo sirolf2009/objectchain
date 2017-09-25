@@ -7,8 +7,9 @@ import java.security.PublicKey
 import org.eclipse.xtend.lib.annotations.Data
 
 import static extension com.sirolf2009.objectchain.common.crypto.CryptoHelper.*
+import static extension com.sirolf2009.objectchain.common.crypto.Hashing.*
 
-@Data class Mutation implements IHashable {
+@Data class Mutation implements IHashable, Comparable<Mutation> {
 	
 	val short version = 1 as short
 	val int objectID
@@ -33,6 +34,20 @@ import static extension com.sirolf2009.objectchain.common.crypto.CryptoHelper.*
 	
 	def verifySignature() {
 		return verify(object.toString(), signature, publicKey)
+	}
+	
+	override compareTo(Mutation o) {
+		if(objectID.compareTo(o.objectID) != 0) {
+			return objectID.compareTo(o.objectID)
+		} else if(signature.compareTo(o.signature) != 0) {
+			return signature.compareTo(o.signature)
+		} else if(signature.compareTo(o.signature) != 0) {
+			return signature.compareTo(o.signature)
+		} else if(publicKey.encoded.toHexString().compareTo(o.publicKey.encoded.toHexString()) != 0) {
+			return publicKey.encoded.toHexString().compareTo(o.publicKey.encoded.toHexString())
+		} else {
+			return 0
+		}
 	}
 	
 }

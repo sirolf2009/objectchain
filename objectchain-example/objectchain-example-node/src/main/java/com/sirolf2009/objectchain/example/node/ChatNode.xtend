@@ -1,14 +1,18 @@
 package com.sirolf2009.objectchain.example.node
 
+import com.esotericsoftware.kryo.Kryo
 import com.sirolf2009.objectchain.common.crypto.Keys
-import com.sirolf2009.objectchain.example.common.ChatKryo
+import com.sirolf2009.objectchain.common.model.Mutation
+import com.sirolf2009.objectchain.example.common.model.ClaimUsername
 import com.sirolf2009.objectchain.example.common.model.Message
 import com.sirolf2009.objectchain.node.Node
 import java.security.KeyPair
 import java.util.List
 import java.util.Scanner
 import org.apache.logging.log4j.LogManager
-import com.sirolf2009.objectchain.common.model.Mutation
+import com.sirolf2009.objectchain.network.node.NewMutation
+
+import static extension com.sirolf2009.objectchain.common.crypto.Hashing.*
 
 class ChatNode extends Node {
 	
@@ -16,7 +20,7 @@ class ChatNode extends Node {
 	val KeyPair keys
 	
 	new(List<String> trackers, int nodePort, KeyPair keys) {
-		super(ChatKryo.kryo, trackers, nodePort)
+		super(chatKryo, trackers, nodePort)
 		this.keys = keys
 	}
 	
@@ -29,8 +33,25 @@ class ChatNode extends Node {
 			val message = new Message() => [
 				message = line
 			]
-			broadcast(new Mutation(0, message, keys))
+			val messageMutation = new Mutation(0, message, keys)
+			floatingMutations.add(messageMutation)
+			broadcast(new NewMutation() => [
+				mutation = messageMutation
+			])
 		}
+	}
+	
+	override onMutationReceived(Mutation mutation) {
+		if(mutation.object instanceof Message) {
+			println(mutation.publicKey.encoded.toHexString()+": "+(mutation.object as Message).message)
+		}
+	}
+	
+	def static getChatKryo() {
+		return new Kryo() => [
+			register(Message)
+			register(ClaimUsername)
+		]
 	}
 	
 	def static void main(String[] args) {

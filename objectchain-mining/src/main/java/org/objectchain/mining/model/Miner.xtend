@@ -4,7 +4,7 @@ import com.sirolf2009.objectchain.node.Node
 import java.util.List
 import com.esotericsoftware.kryo.Kryo
 
-class Miner extends Node {
+abstract class Miner extends Node {
 	
 	var BlockMutable pendingBlock
 

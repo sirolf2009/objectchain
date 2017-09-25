@@ -127,7 +127,7 @@ class CryptoHelper {
 	}
 
 	def static publicKey(List<Byte> bytes) {
-		return getKeyFactory().generatePublic(new X509EncodedKeySpec(bytes))
+		return getKeyFactory().generatePublic(new X509EncodedKeySpec(bytes.map[it as byte]))
 	}
 
 	def static KeyPairGenerator getKeyPairGenerator() {

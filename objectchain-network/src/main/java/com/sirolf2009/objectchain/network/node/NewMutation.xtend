@@ -10,6 +10,6 @@ import com.sirolf2009.objectchain.common.model.Mutation
 @EqualsHashCode
 class NewMutation {
 	
-	var Mutation mutations
+	var Mutation mutation
 	
 }

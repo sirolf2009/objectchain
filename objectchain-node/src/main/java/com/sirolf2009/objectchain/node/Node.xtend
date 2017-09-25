@@ -29,11 +29,10 @@ import java.util.concurrent.ArrayBlockingQueue
 import java.util.function.Consumer
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.slf4j.LoggerFactory
-
-import static extension com.sirolf2009.objectchain.common.crypto.Hashing.*
+import com.esotericsoftware.kryonet.KryoSerialization
 
 @Accessors
-class Node {
+abstract class Node {
 
 	static val log = LoggerFactory.getLogger(Node)
 	val Kryo kryo
@@ -53,13 +52,15 @@ class Node {
 		this.nodePort = nodePort
 		this.floatingMutations = new TreeSet()
 		this.clients = new ArrayList()
-		this.blockchain = new BlockChain(kryo, new ArrayList())
+		this.blockchain = new BlockChain(new ArrayList())
+		KryoRegistrationNode.register(kryo)
 	}
 
 	def start() {
 		val peers = getTrackedNodes()
 		log.info("Received {} peers", peers.size())
 		if(peers.size() == 0) {
+			synchronised = true
 			log.info("No peers found, creating genesis block")
 			val genesis = new Block(new BlockHeader(newArrayOfSize(0), newArrayOfSize(0), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 0), #[])
 			blockchain.blocks.add(genesis)
@@ -71,8 +72,7 @@ class Node {
 
 	def host() {
 		log.info("Starting host on {}", nodePort)
-		server = new Server()
-		KryoRegistrationNode.register(server.kryo)
+		server = new Server(16384, 2048, new KryoSerialization(kryo))
 		server.bind(nodePort)
 
 		server.addListener(new Listener() {
@@ -80,14 +80,14 @@ class Node {
 			override connected(Connection connection) {
 				connection.name = connection.remoteAddressTCP.address.hostAddress + ":" + connection.remoteAddressTCP.port
 				log.info("{} connected to us", connection)
-				onNewConnection(connection)
+				onNewConnection(server.kryo, connection)
 			}
 
 			override received(Connection connection, Object object) {
 				if(object instanceof KeepAlive) {
 					return
 				}
-				handleNewObject(connection, object)
+				handleNewObject(server.kryo, connection, object)
 			}
 
 			override disconnected(Connection connection) {
@@ -106,27 +106,28 @@ class Node {
 	def connectToNode(String host, int port) {
 		try {
 			log.info("Connecting to peer {}:{}", host, port)
-			val client = new Client()
+			val client = new Client(16384, 2048, new KryoSerialization(kryo))
 			client.start()
-			KryoRegistrationNode.register(client.kryo)
 
 			client.addListener(new Listener() {
 
 				override connected(Connection connection) {
+					clients.add(client)
 					connection.name = host + ":" + port
 					log.info("Connected to peer {}", connection)
-					onNewConnection(connection)
+					onNewConnection(client.kryo, connection)
 				}
 
 				override received(Connection connection, Object object) {
 					if(object instanceof KeepAlive) {
 						return
 					}
-					handleNewObject(connection, object)
+					handleNewObject(client.kryo, connection, object)
 				}
 
 				override disconnected(Connection connection) {
 					log.info("Disconnected from peer {}", connection)
+					clients.remove(client)
 				}
 
 			})
@@ -137,7 +138,7 @@ class Node {
 		}
 	}
 
-	def synchronized onNewConnection(Connection connection) {
+	def synchronized onNewConnection(Kryo kryo, Connection connection) {
 		if(!synchronised) {
 			synchronised = true
 			connection.sendTCP(new SyncRequest() => [
@@ -149,13 +150,12 @@ class Node {
 		}
 	}
 
-	def handleNewObject(Connection connection, Object object) {
+	def handleNewObject(Kryo kryo, Connection connection, Object object) {
 		log.debug("{} send {}", connection, object)
 		if(object instanceof NewMutation) {
 			handleNewMutations(connection, object)
-		}
-		if(object instanceof SyncRequest) {
-			handleSyncRequest(connection, object)
+		} else if(object instanceof SyncRequest) {
+			handleSyncRequest(kryo, connection, object)
 		} else if(object instanceof SyncResponse) {
 			handleSyncResponse(connection, object)
 		} else {
@@ -163,19 +163,23 @@ class Node {
 		}
 	}
 
-	def handleNewMutations(Connection connection, NewMutation newMutations) {
-		log.info("{} send new mutation {}", connection, newMutations.getMutations.hash(kryo).toHexString())
-		if(newMutations.getMutations.verifySignature()) {
-			if(floatingMutations.add(newMutations.getMutations)) {
+	def handleNewMutations(Connection connection, NewMutation newMutation) {
+		log.info("{} send new mutation {}", connection, newMutation.getMutation)
+		if(newMutation.getMutation.verifySignature()) {
+			onMutationReceived(newMutation.mutation)
+			if(floatingMutations.add(newMutation.getMutation)) {
 				log.info("propagating new mutation")
-				broadcast(newMutations.getMutations, Optional.of(connection))
+				broadcast(newMutation.getMutation, Optional.of(connection))
 			}
 		} else {
-			log.warn("{} send mutation {}, but I could not verify the signature!", connection, newMutations)
+			log.warn("{} send mutation {}, but I could not verify the signature!", connection, newMutation)
 		}
 	}
+	
+	def onMutationReceived(Mutation mutation) {
+	}
 
-	def handleSyncRequest(Connection connection, SyncRequest sync) {
+	def handleSyncRequest(Kryo kryo, Connection connection, SyncRequest sync) {
 		log.info("{} send sync request", connection)
 		if(sync.lastKnownBlock !== null && sync.lastKnownBlock.present) {
 			val lastKnownBlock = blockchain.blocks.findFirst[hash(kryo).equals(sync.lastKnownBlock.get())]
