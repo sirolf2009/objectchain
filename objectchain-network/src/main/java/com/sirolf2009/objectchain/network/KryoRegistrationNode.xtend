@@ -14,6 +14,7 @@ import java.security.PublicKey
 import java.util.Date
 import java.util.Optional
 import com.sirolf2009.objectchain.common.serializer.SerializerMutation
+import com.sirolf2009.objectchain.network.node.NewBlock
 
 class KryoRegistrationNode {
 	
@@ -32,6 +33,7 @@ class KryoRegistrationNode {
 		kryo.register(BlockHeader, new SerializerBlockHeader())
 		kryo.register(BigInteger)
 		kryo.register(Date)
+		kryo.register(NewBlock)
 	}
 	
 }

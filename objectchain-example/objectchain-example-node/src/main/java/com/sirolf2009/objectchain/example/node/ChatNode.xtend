@@ -23,30 +23,31 @@ class ChatNode extends Node {
 		super(chatKryo, trackers, nodePort, keys)
 	}
 
-	override start() {
-		super.start()
-		log.info("Initialized, running chat...")
-		val scanner = new Scanner(System.in)
-		while(true) {
-			val line = scanner.nextLine()
+	override onSynchronised() {
+		new Thread [
+			log.info("Initialized, running chat...")
+			val scanner = new Scanner(System.in)
+			while(true) {
+				val line = scanner.nextLine()
 
-			if(line.startsWith("/")) {
-				if(line.startsWith("/claim")) {
-					val claim = new ClaimUsername() => [
-						username = line.replaceFirst("/claim", "").trim()
+				if(line.startsWith("/")) {
+					if(line.startsWith("/claim")) {
+						val claim = new ClaimUsername() => [
+							username = line.replaceFirst("/claim", "").trim()
+						]
+						submitMutation(claim)
+					} else if(line.startsWith("/help")) {
+						println("Commands:")
+						println("/claim <username>		Claim a username")
+					}
+				} else {
+					val message = new Message() => [
+						message = line
 					]
-					submitMutation(claim)
-				} else if(line.startsWith("/help")) {
-					println("Commands:")
-					println("/claim <username>		Claim a username")
+					submitMutation(message)
 				}
-			} else {
-				val message = new Message() => [
-					message = line
-				]
-				submitMutation(message)
 			}
-		}
+		].start()
 	}
 
 	override onMutationReceived(Mutation mutation) {

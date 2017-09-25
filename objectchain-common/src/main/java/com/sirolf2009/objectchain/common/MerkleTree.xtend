@@ -8,8 +8,8 @@ import com.sirolf2009.objectchain.common.model.Mutation
 
 class MerkleTree {
 	
-	def public static List<Byte> merkleTreeMutations(Kryo kryo, List<Mutation> hashes) {
-		return merkleTree(hashes.map[hash(kryo)])
+	def public static List<Byte> merkleTreeMutations(Kryo kryo, Iterable<Mutation> hashes) {
+		return merkleTree(hashes.map[hash(kryo)].toList())
 	}
 	
 	def public static String merkleTreeHex(List<String> hashes) {
@@ -17,6 +17,9 @@ class MerkleTree {
 	}
 
 	def public static List<Byte> merkleTree(List<List<Byte>> hashes) {
+		if(hashes.size() == 0) {
+			throw new IllegalArgumentException("Cannot merkle tree an empty list")
+		}
 		if(hashes.size() == 1) {
 			return hashes.get(0)
 		}

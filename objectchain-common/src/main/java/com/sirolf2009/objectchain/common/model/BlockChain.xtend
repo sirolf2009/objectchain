@@ -8,18 +8,14 @@ import org.eclipse.xtend.lib.annotations.Data
 
 	val List<Block> blocks
 
-	def verify(Kryo kryo) {
-		if(blocks.findFirst[!verify(kryo)] !== null) {
+	def verify(Kryo kryo, int fromBlock) {
+		if(blocks.subList(fromBlock, blocks.size()).findFirst[!verify(kryo)] !== null) {
 			return false
 		}
-		if(!hashCheck(kryo, 0)) {
+		if(!hashCheck(kryo, fromBlock)) {
 			return false
 		}
-		blocks.iterator
-	}
-
-	def hashCheck(Kryo kryo) {
-		return hashCheck(kryo, 0)
+		return true
 	}
 
 	def hashCheck(Kryo kryo, int fromBlock) {

@@ -8,8 +8,7 @@
 		<artifactId>objectchain</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
-	<artifactId>objectchain-mining</artifactId>
-	<name>objectchain-mining</name>
+	<artifactId>objectchain-miner</artifactId>
 	
 	<dependencies>
 		<dependency>

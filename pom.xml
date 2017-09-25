@@ -14,9 +14,9 @@
 		<module>objectchain-network</module>
 		<module>objectchain-tracker</module>
 		<module>objectchain-node</module>
-		<module>objectchain-mining</module>
-    <module>objectchain-example</module>
-  </modules>
+		<module>objectchain-miner</module>
+		<module>objectchain-example</module>
+	</modules>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
