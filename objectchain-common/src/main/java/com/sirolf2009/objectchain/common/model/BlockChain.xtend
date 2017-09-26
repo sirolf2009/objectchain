@@ -1,18 +1,25 @@
 package com.sirolf2009.objectchain.common.model
 
 import com.esotericsoftware.kryo.Kryo
-import java.util.List
+import java.util.ArrayList
+import java.util.Arrays
 import java.util.Set
-import org.eclipse.xtend.lib.annotations.Data
+import org.eclipse.xtend.lib.annotations.Accessors
+import org.eclipse.xtend.lib.annotations.EqualsHashCode
+import org.eclipse.xtend.lib.annotations.ToString
 
-@Data class BlockChain {
+@ToString
+@Accessors
+@EqualsHashCode
+class BlockChain {
 
-	val List<Block> blocks
-	val List<List<Block>> branches
+	var Branch mainBranch
+	val Set<Branch> sideBranches
+
 	val Set<Block> orphanedBlocks
 
 	def verify(Kryo kryo, int fromBlock) {
-		if(blocks.subList(fromBlock, blocks.size()).findFirst[!verify(kryo)] !== null) {
+		if(mainBranch.blocks.subList(fromBlock, mainBranch.blocks.size()).findFirst[!verify(kryo)] !== null) {
 			return false
 		}
 		if(!hashCheck(kryo, fromBlock)) {
@@ -22,13 +29,42 @@ import org.eclipse.xtend.lib.annotations.Data
 	}
 
 	def hashCheck(Kryo kryo, int fromBlock) {
-		var prevousHash = blocks.get(fromBlock).hash(kryo)
-		for (var i = fromBlock + 1; i < blocks.size(); i++) {
-			if(!blocks.get(i).header.previousBlock.equals(prevousHash)) {
+		var prevousHash = mainBranch.blocks.get(fromBlock).hash(kryo)
+		for (var i = fromBlock + 1; i < mainBranch.blocks.size(); i++) {
+			if(!mainBranch.blocks.get(i).header.previousBlock.equals(prevousHash)) {
 				return false
 			}
 		}
 		return true
+	}
+
+	def branchOff(Kryo kryo, Block block) {
+		val branchRoot = mainBranch.blocks.findLast[hash(kryo).equals(block.header.previousBlock)]
+		sideBranches.add(new Branch(branchRoot, new ArrayList(Arrays.asList(branchRoot, block))))
+	}
+	
+	def totalBranchLength(Branch branch) {
+		return mainBranch.blocks.indexOf(branch.root) + branch.blocks.size()
+	}
+
+	def isBranchLonger(Branch branch) {
+		return branch.totalBranchLength > mainBranch.blocks.size()
+	}
+
+	def promoteBranch(Branch branch) {
+		val newSideBranch = new Branch(branch.root, blocks.subList(blocks.indexOf(branch.root), blocks.size()))
+		sideBranches.remove(branch)
+		sideBranches.add(newSideBranch)
+		blocks.removeAll(newSideBranch.blocks)
+		blocks.addAll(branch.blocks)
+	}
+
+	def getBlocks() {
+		return mainBranch.blocks
+	}
+
+	def size() {
+		return blocks.size()
 	}
 
 }

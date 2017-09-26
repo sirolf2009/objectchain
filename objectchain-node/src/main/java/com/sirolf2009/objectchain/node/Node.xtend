@@ -10,6 +10,7 @@ import com.esotericsoftware.kryonet.Server
 import com.sirolf2009.objectchain.common.model.Block
 import com.sirolf2009.objectchain.common.model.BlockChain
 import com.sirolf2009.objectchain.common.model.BlockHeader
+import com.sirolf2009.objectchain.common.model.Branch
 import com.sirolf2009.objectchain.common.model.Mutation
 import com.sirolf2009.objectchain.network.KryoRegistrationNode
 import com.sirolf2009.objectchain.network.KryoRegistrationTracker
@@ -23,7 +24,9 @@ import com.sirolf2009.objectchain.network.tracker.TrackerRequest
 import java.math.BigInteger
 import java.security.KeyPair
 import java.util.ArrayList
+import java.util.Arrays
 import java.util.Date
+import java.util.HashSet
 import java.util.List
 import java.util.Optional
 import java.util.Set
@@ -32,7 +35,6 @@ import java.util.concurrent.ArrayBlockingQueue
 import java.util.function.Consumer
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.slf4j.LoggerFactory
-import java.util.HashSet
 
 @Accessors
 abstract class Node {
@@ -57,7 +59,7 @@ abstract class Node {
 		this.keys = keys
 		this.floatingMutations = new TreeSet()
 		this.clients = new ArrayList()
-		this.blockchain = new BlockChain(new ArrayList(), new ArrayList(), new HashSet())
+		this.blockchain = new BlockChain(new HashSet(), new HashSet())
 		KryoRegistrationNode.register(kryo)
 	}
 
@@ -68,7 +70,7 @@ abstract class Node {
 			synchronised = true
 			log.info("No peers found, creating genesis block")
 			val genesis = new Block(new BlockHeader(newArrayOfSize(0), newArrayOfSize(0), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 0), new TreeSet())
-			blockchain.blocks.add(genesis)
+			blockchain.mainBranch = new Branch(genesis, new ArrayList(Arrays.asList(genesis)))
 			onSynchronised()
 		} else {
 			peers.forEach[connectToNode(it)]
@@ -213,16 +215,21 @@ abstract class Node {
 		log.info("{} send sync response", connection)
 		if(sync.newBlocks !== null && sync.newBlocks.size() > 0) {
 			if(!synchronised) {
-				if(new BlockChain(sync.newBlocks, new ArrayList(), new HashSet()).verify(kryo, 0)) {
+				val chain = new BlockChain(new HashSet(), new HashSet()) => [
+					mainBranch = new Branch(sync.newBlocks.get(0), new ArrayList(sync.newBlocks))
+				]
+				if(chain.verify(kryo, 0)) {
 					synchronised = true
 					blockchain.blocks.addAll(sync.newBlocks)
 					log.info("Blockchain has been downloaded")
 					onSynchronised()
 				}
-			} else {
+			} else { //TODO this shouldn't happen
 				val newBlocks = new ArrayList(blockchain.blocks)
 				newBlocks += sync.newBlocks
-				val newBlockchain = new BlockChain(newBlocks, new ArrayList(), new HashSet)
+				val newBlockchain = new BlockChain(new HashSet(), new HashSet()) => [
+					mainBranch = new Branch(sync.newBlocks.get(0), new ArrayList(sync.newBlocks))
+				]
 				if(newBlockchain.blocks.size() == 1) {
 					blockchain.blocks += sync.newBlocks
 					log.info("Received genesis block")
@@ -252,19 +259,13 @@ abstract class Node {
 				blockchain.blocks.add(newBlock.block)
 				broadcast(newBlock, Optional.of(connection))
 				onBlockchainExpanded()
-			} else if(blockchain.branches.findFirst[newBlock.block.canExpand(kryo, last)] !== null) {
+			} else if(blockchain.sideBranches.findFirst[newBlock.block.canExpand(kryo, blocks.last)] !== null) {
 				log.info("New block on side branch has been mined")
-				val branch = blockchain.branches.findFirst[newBlock.block.canExpand(kryo, last)]
-				branch.add(newBlock.block)
-				val branchPoint = blockchain.blocks.findLast[hash(kryo).equals(branch.get(0).header.previousBlock)]
-				val branchSize = (blockchain.blocks.indexOf(branchPoint) + 1) + branch.size()
-				if(branchSize > blockchain.blocks.size()) {
+				val branch = blockchain.sideBranches.findFirst[newBlock.block.canExpand(kryo, blocks.last)]
+				branch.blocks.add(newBlock.block)
+				if(blockchain.isBranchLonger(branch)) {
 					log.info("Side branch is longer than the main branch. Setting it as the main branch")
-					val newSideBranch = blockchain.blocks.subList(blockchain.blocks.indexOf(branchPoint), blockchain.blocks.size())
-					blockchain.blocks.removeAll(newSideBranch)
-					blockchain.branches.remove(branch)
-					blockchain.branches.add(newSideBranch)
-					blockchain.blocks.addAll(branch)
+					blockchain.promoteBranch(branch)
 					//TODO re-evaluate all mutations since fork
 					//      |-> actually, store them in branches instead, should make the code a lot easier
 					onBranchReplace()
