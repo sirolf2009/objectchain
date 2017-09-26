@@ -2,11 +2,14 @@ package com.sirolf2009.objectchain.common.model
 
 import com.esotericsoftware.kryo.Kryo
 import java.util.List
+import java.util.Set
 import org.eclipse.xtend.lib.annotations.Data
 
 @Data class BlockChain {
 
 	val List<Block> blocks
+	val List<List<Block>> branches
+	val Set<Block> orphanedBlocks
 
 	def verify(Kryo kryo, int fromBlock) {
 		if(blocks.subList(fromBlock, blocks.size()).findFirst[!verify(kryo)] !== null) {

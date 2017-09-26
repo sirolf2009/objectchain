@@ -12,5 +12,6 @@ import org.eclipse.xtend.lib.annotations.ToString
 class SyncRequest {
 	
 	var Optional<List<Byte>> lastKnownBlock
+	var Optional<Integer> amountOfBlocks
 	
 }

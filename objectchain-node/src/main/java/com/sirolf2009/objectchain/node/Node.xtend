@@ -13,6 +13,7 @@ import com.sirolf2009.objectchain.common.model.BlockHeader
 import com.sirolf2009.objectchain.common.model.Mutation
 import com.sirolf2009.objectchain.network.KryoRegistrationNode
 import com.sirolf2009.objectchain.network.KryoRegistrationTracker
+import com.sirolf2009.objectchain.network.node.NewBlock
 import com.sirolf2009.objectchain.network.node.NewMutation
 import com.sirolf2009.objectchain.network.node.SyncRequest
 import com.sirolf2009.objectchain.network.node.SyncResponse
@@ -31,7 +32,7 @@ import java.util.concurrent.ArrayBlockingQueue
 import java.util.function.Consumer
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.slf4j.LoggerFactory
-import com.sirolf2009.objectchain.network.node.NewBlock
+import java.util.HashSet
 
 @Accessors
 abstract class Node {
@@ -56,7 +57,7 @@ abstract class Node {
 		this.keys = keys
 		this.floatingMutations = new TreeSet()
 		this.clients = new ArrayList()
-		this.blockchain = new BlockChain(new ArrayList())
+		this.blockchain = new BlockChain(new ArrayList(), new ArrayList(), new HashSet())
 		KryoRegistrationNode.register(kryo)
 	}
 
@@ -212,7 +213,7 @@ abstract class Node {
 		log.info("{} send sync response", connection)
 		if(sync.newBlocks !== null && sync.newBlocks.size() > 0) {
 			if(!synchronised) {
-				if(new BlockChain(sync.newBlocks).verify(kryo, 0)) {
+				if(new BlockChain(sync.newBlocks, new ArrayList(), new HashSet()).verify(kryo, 0)) {
 					synchronised = true
 					blockchain.blocks.addAll(sync.newBlocks)
 					log.info("Blockchain has been downloaded")
@@ -221,7 +222,7 @@ abstract class Node {
 			} else {
 				val newBlocks = new ArrayList(blockchain.blocks)
 				newBlocks += sync.newBlocks
-				val newBlockchain = new BlockChain(newBlocks)
+				val newBlockchain = new BlockChain(newBlocks, new ArrayList(), new HashSet)
 				if(newBlockchain.blocks.size() == 1) {
 					blockchain.blocks += sync.newBlocks
 					log.info("Received genesis block")
@@ -243,16 +244,42 @@ abstract class Node {
 	}
 
 	def synchronized handleNewBlock(Connection connection, NewBlock newBlock) {
+		// TODO Reject if duplicate of block we have in any of the three categories
 		if(newBlock.block.verify(kryo)) {
+			// TODO Check if prev block (matching prev hash) is in main branch or side branches. If not, add this to orphan blocks, then query peer we got this from for 1st missing orphan block in prev chain; done with block
 			if(newBlock.block.canExpand(kryo, blockchain)) {
 				log.info("New block has been mined")
 				blockchain.blocks.add(newBlock.block)
+				broadcast(newBlock, Optional.of(connection))
 				onBlockchainExpanded()
+			} else if(blockchain.branches.findFirst[newBlock.block.canExpand(kryo, last)] !== null) {
+				log.info("New block on side branch has been mined")
+				val branch = blockchain.branches.findFirst[newBlock.block.canExpand(kryo, last)]
+				branch.add(newBlock.block)
+				val branchPoint = blockchain.blocks.findLast[hash(kryo).equals(branch.get(0).header.previousBlock)]
+				val branchSize = (blockchain.blocks.indexOf(branchPoint) + 1) + branch.size()
+				if(branchSize > blockchain.blocks.size()) {
+					log.info("Side branch is longer than the main branch. Setting it as the main branch")
+					val newSideBranch = blockchain.blocks.subList(blockchain.blocks.indexOf(branchPoint), blockchain.blocks.size())
+					blockchain.blocks.removeAll(newSideBranch)
+					blockchain.branches.remove(branch)
+					blockchain.branches.add(newSideBranch)
+					blockchain.blocks.addAll(branch)
+					//TODO re-evaluate all mutations since fork
+					//      |-> actually, store them in branches instead, should make the code a lot easier
+					onBranchReplace()
+				} else {
+					onBranchExpanded()
+				}
+				broadcast(newBlock, Optional.of(connection))
 			} else {
-				log.info("Unexpected block was mined, sending sync request", connection)
-				connection.sendTCP(new SyncRequest() => [
-					lastKnownBlock = Optional.of(blockchain.blocks.last.hash(kryo))
-				])
+				if(blockchain.orphanedBlocks.add(newBlock.block)) {
+					log.info("Received orphan block, sending sync request", connection)
+					connection.sendTCP(new SyncRequest() => [
+						lastKnownBlock = Optional.of(blockchain.blocks.last.hash(kryo))
+					])
+					onOrphansExpanded()
+				}
 			}
 		} else {
 			log.warn("{} send new block {}, but I could not verify the integrity!", connection, newBlock)
@@ -260,6 +287,15 @@ abstract class Node {
 	}
 
 	def void onBlockchainExpanded() {
+	}
+
+	def void onBranchReplace() {
+	}
+
+	def void onBranchExpanded() {
+	}
+
+	def void onOrphansExpanded() {
 	}
 
 	def submitMutation(Object object) {
@@ -279,7 +315,7 @@ abstract class Node {
 		val Consumer<Connection> send = [
 			if(!skip.isPresent || it != skip.get()) {
 				log.debug("sending {} to {}", object, it)
-				sendTCP(object)
+				sendUDP(object)
 			}
 		]
 		server.connections.parallelStream().forEach(send)
