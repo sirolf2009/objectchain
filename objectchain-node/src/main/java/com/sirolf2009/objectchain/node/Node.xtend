@@ -69,7 +69,7 @@ abstract class Node {
 		if(peers.size() == 0) {
 			synchronised = true
 			log.info("No peers found, creating genesis block")
-			val genesis = new Block(new BlockHeader(newArrayOfSize(0), newArrayOfSize(0), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 0), new TreeSet())
+			val genesis = new Block(new BlockHeader(newArrayOfSize(0), newArrayOfSize(0), new Date(), new BigInteger("000022FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 0), new TreeSet())
 			blockchain.mainBranch = new Branch(genesis, new ArrayList(Arrays.asList(genesis)))
 			onSynchronised()
 		} else {
@@ -80,7 +80,7 @@ abstract class Node {
 
 	def host() {
 		log.info("Starting host on {}", nodePort)
-		server = new Server(16384, 2048, new KryoSerialization(kryo))
+		server = new Server(16384, 16384, new KryoSerialization(kryo))
 		server.bind(nodePort)
 
 		server.addListener(new Listener() {
@@ -114,16 +114,17 @@ abstract class Node {
 	def connectToNode(String host, int port) {
 		try {
 			log.info("Connecting to peer {}:{}", host, port)
-			val client = new Client(16384, 2048, new KryoSerialization(kryo))
+			val client = new Client(16384, 16384, new KryoSerialization(kryo))
 			client.start()
 
 			client.addListener(new Listener() {
 
 				override synchronized connected(Connection connection) {
-					clients.add(client)
+					synchronized (clients) {
+						clients.add(client)
+					}
 					connection.name = host + ":" + port
 					log.info("Connected to peer {}", connection)
-					log.info("Connected to {} peer", clients.size())
 					onNewConnection(client.kryo, connection)
 				}
 
@@ -149,9 +150,8 @@ abstract class Node {
 
 	def synchronized onNewConnection(Kryo kryo, Connection connection) {
 		if(!synchronised) {
-			synchronised = true
 			connection.sendTCP(new SyncRequest() => [
-				if(blockchain.blocks.length() > 0) {
+				if(blockchain.mainBranch !== null && blockchain.blocks?.length() > 0) {
 					lastKnownBlock = Optional.of(blockchain.blocks.last.hash(kryo))
 				}
 				lastKnownBlock = Optional.empty()
@@ -177,14 +177,18 @@ abstract class Node {
 	def handleNewMutations(Connection connection, NewMutation newMutation) {
 		log.info("{} send new mutation", connection)
 		if(newMutation.getMutation.verifySignature()) {
-			onMutationReceived(newMutation.mutation)
-			if(floatingMutations.add(newMutation.getMutation)) {
+			if(addMutation(newMutation.getMutation)) {
+				onMutationReceived(newMutation.mutation)
 				log.info("propagating new mutation")
-				broadcast(newMutation.getMutation, Optional.of(connection))
+				broadcast(newMutation, Optional.of(connection))
 			}
 		} else {
 			log.warn("{} send mutation {}, but I could not verify the signature!", connection, newMutation)
 		}
+	}
+
+	def boolean addMutation(Mutation mutation) {
+		return floatingMutations.add(mutation)
 	}
 
 	def void onMutationReceived(Mutation mutation) {
@@ -214,17 +218,28 @@ abstract class Node {
 	def synchronized handleSyncResponse(Connection connection, SyncResponse sync) {
 		log.info("{} send sync response", connection)
 		if(sync.newBlocks !== null && sync.newBlocks.size() > 0) {
+			log.info("Received {} blocks and {} transactions", sync.newBlocks.size(), sync.floatingMutations.size())
+			this.floatingMutations.addAll(sync.floatingMutations)
 			if(!synchronised) {
 				val chain = new BlockChain(new HashSet(), new HashSet()) => [
 					mainBranch = new Branch(sync.newBlocks.get(0), new ArrayList(sync.newBlocks))
 				]
-				if(chain.verify(kryo, 0)) {
+				if(chain.blocks.size() == 1) {
+					if(chain.blocks.get(0).header.previousBlock.size() == 0 && chain.blocks.get(0).mutations.size() == 0) {
+						synchronised = true
+						blockchain.mainBranch = new Branch(sync.newBlocks.get(0), new ArrayList(Arrays.asList(sync.newBlocks.get(0))))
+						log.info("Blockchain has been downloaded")
+						onSynchronised()
+						onInitialized()
+					}
+				} else if(chain.verify(kryo, 0)) {
 					synchronised = true
-					blockchain.blocks.addAll(sync.newBlocks)
+					blockchain.mainBranch = new Branch(sync.newBlocks.get(0), new ArrayList(sync.newBlocks))
 					log.info("Blockchain has been downloaded")
 					onSynchronised()
+					onInitialized()
 				}
-			} else { //TODO this shouldn't happen
+			} else { // TODO this shouldn't happen
 				val newBlocks = new ArrayList(blockchain.blocks)
 				newBlocks += sync.newBlocks
 				val newBlockchain = new BlockChain(new HashSet(), new HashSet()) => [
@@ -250,7 +265,11 @@ abstract class Node {
 	def void onSynchronised() {
 	}
 
+	def void onInitialized() {
+	}
+
 	def synchronized handleNewBlock(Connection connection, NewBlock newBlock) {
+		log.info("Received new block")
 		// TODO Reject if duplicate of block we have in any of the three categories
 		if(newBlock.block.verify(kryo)) {
 			// TODO Check if prev block (matching prev hash) is in main branch or side branches. If not, add this to orphan blocks, then query peer we got this from for 1st missing orphan block in prev chain; done with block
@@ -266,8 +285,8 @@ abstract class Node {
 				if(blockchain.isBranchLonger(branch)) {
 					log.info("Side branch is longer than the main branch. Setting it as the main branch")
 					blockchain.promoteBranch(branch)
-					//TODO re-evaluate all mutations since fork
-					//      |-> actually, store them in branches instead, should make the code a lot easier
+					// TODO re-evaluate all mutations since fork
+					// |-> actually, store them in branches instead, should make the code a lot easier
 					onBranchReplace()
 				} else {
 					onBranchExpanded()
@@ -283,7 +302,7 @@ abstract class Node {
 				}
 			}
 		} else {
-			log.warn("{} send new block {}, but I could not verify the integrity!", connection, newBlock)
+			log.warn("{} send new block {}, but I could not verify the integrity!", connection, newBlock.block.toString(kryo))
 		}
 	}
 
@@ -312,19 +331,22 @@ abstract class Node {
 	}
 
 	def synchronized broadcast(Object object, Optional<Connection> skip) {
+		log.info("Broadcasting {}", object.class)
 		log.trace("Broadcasting {}", object)
 		val Consumer<Connection> send = [
 			if(!skip.isPresent || it != skip.get()) {
 				log.debug("sending {} to {}", object, it)
-				sendUDP(object)
+				sendTCP(object)
 			}
 		]
 		server.connections.parallelStream().forEach(send)
-		clients.parallelStream().forEach(send)
+		synchronized(clients) {
+			clients.parallelStream().forEach(send)
+		}
 	}
 
 	def getTrackedNodes() {
-		return trackers.map[getTrackedNodes(it)].map[tracked].flatten.toSet()
+		return trackers.map[getTrackedNodes(it)].map[tracked].flatten.filter[!it.host.equals("localhost") && !it.port.equals(nodePort)].toSet()
 	}
 
 	def getTrackedNodes(String tracker) {

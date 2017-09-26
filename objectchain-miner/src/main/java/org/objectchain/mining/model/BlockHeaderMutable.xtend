@@ -19,7 +19,7 @@ class BlockHeaderMutable implements IBlockHeader {
 	
 	val short version = 1 as short
 	val List<Byte> previousBlock
-	val List<Byte> merkleRoot
+	var List<Byte> merkleRoot
 	var Date time
 	val BigInteger target
 	var int nonce

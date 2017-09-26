@@ -1,5 +1,6 @@
 package com.sirolf2009.objectchain.common.model
 
+import com.esotericsoftware.kryo.Kryo
 import com.sirolf2009.objectchain.common.interfaces.IHashable
 import java.security.KeyPair
 import java.security.PrivateKey
@@ -44,6 +45,16 @@ import static extension com.sirolf2009.objectchain.common.crypto.Hashing.*
 		} else {
 			return 0
 		}
+	}
+	
+	def toString(Kryo kryo) {
+		return 
+		'''
+		Mutation «hash(kryo).toHexString()» [ 
+			key = «publicKey.encoded.toHexString()»
+			«object»
+		]
+		'''
 	}
 	
 }

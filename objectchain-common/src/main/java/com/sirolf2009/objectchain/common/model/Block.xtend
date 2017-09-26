@@ -5,11 +5,13 @@ import com.sirolf2009.objectchain.common.MerkleTree
 import com.sirolf2009.objectchain.common.interfaces.IBlock
 import java.util.Set
 import org.eclipse.xtend.lib.annotations.Data
+import org.slf4j.LoggerFactory
 
-import static extension com.sirolf2009.objectchain.common.crypto.Hashing.toHexString
+import static extension com.sirolf2009.objectchain.common.crypto.Hashing.*
 
 @Data class Block implements IBlock {
 
+	static val log = LoggerFactory.getLogger(Block)
 	val BlockHeader header
 	val Set<Mutation> mutations
 
@@ -27,9 +29,13 @@ import static extension com.sirolf2009.objectchain.common.crypto.Hashing.toHexSt
 		//TODO Reject if timestamp is the median time of the last 11 blocks or before
 		//TODO For certain old blocks (i.e. on initial block download) check that hash matches known values
 		if(mutations.findFirst[!verifySignature()] !== null) {
+			log.debug("wrong signature")
 			return false
 		}
-		if(!MerkleTree.merkleTreeMutations(kryo, mutations).equals(header.merkleRoot.toHexString())) {
+		if(!MerkleTree.merkleTreeMutations(kryo, mutations).equals(header.merkleRoot)) {
+			log.debug("wrong merkleTree")
+			log.debug("expected = " +MerkleTree.merkleTreeMutations(kryo, mutations).toHexString())
+			log.debug("actual= " +header.merkleRoot.toHexString())
 			return false
 		}
 		return true
@@ -41,6 +47,25 @@ import static extension com.sirolf2009.objectchain.common.crypto.Hashing.toHexSt
 
 	def canExpand(Kryo kryo, Block block) {
 		return header.previousBlock.equals(block.hash(kryo))
+	}
+	
+	def toString(Kryo kryo) {
+		return 
+		'''
+		Block «hash(kryo).toHexString()» [
+			version=«header.version»
+			prevBlock=«header.previousBlock.toHexString()»
+			merkleRoot=«header.merkleRoot.toHexString()»
+			time=«header.time»
+			target=«header.target.toString(16)»
+			nonce=«header.nonce»
+			«mutations.size()» Mutations [
+			«FOR m : mutations.toList().reverseView()»
+				«m.toString(kryo)»
+			«ENDFOR»
+			]
+		]
+		'''
 	}
 
 }

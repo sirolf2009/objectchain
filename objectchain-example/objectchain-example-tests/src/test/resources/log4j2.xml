@@ -2,12 +2,15 @@
 <Configuration status="INFO">
     <Appenders>
         <Console name="STDOUT" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d [%highlight{%-6p}] %c{1} │ %m%n" />
+            <PatternLayout pattern="%d [%-6p] %t %c{1} │ %m%n" />
         </Console>
     </Appenders>
     <Loggers>
-        <Root level="TRACE">
+        <Root level="INFO">
             <AppenderRef ref="STDOUT" />
         </Root>
+        <Logger name="com.sirolf2009.objectchain.common.model.Block" level="DEBUG" additivity="false">
+            <AppenderRef ref="STDOUT" />
+        </Logger>
     </Loggers>
 </Configuration>

@@ -15,5 +15,6 @@
   	<module>objectchain-example-node</module>
   	<module>objectchain-example-tracker</module>
     <module>objectchain-example-miner</module>
+    <module>objectchain-example-tests</module>
   </modules>
 </project>

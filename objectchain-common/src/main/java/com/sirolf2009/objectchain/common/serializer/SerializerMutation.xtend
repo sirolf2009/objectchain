@@ -12,14 +12,16 @@ class SerializerMutation extends Serializer<Mutation> {
 	override read(Kryo kryo, Input input, Class<Mutation> type) {
 		val object = kryo.readClassAndObject(input)
 		val signature = input.readString()
-		val key = kryo.readObject(input, typeof(Byte[]))
+		val keySize = input.readInt()
+		val key = (0 ..< keySize).map[input.readByte].toList()
 		return new Mutation(object, signature, CryptoHelper.publicKey(key))
 	}
 	
 	override write(Kryo kryo, Output output, Mutation object) {
 		kryo.writeClassAndObject(output, object.object)
 		output.writeString(object.signature)
-		kryo.writeObject(output, object.publicKey.encoded.map[it as Byte].toArray(newArrayOfSize(object.publicKey.encoded.size())))
+		output.writeInt(object.publicKey.encoded.size())
+		object.publicKey.encoded.forEach[output.writeByte(it)]
 	}
 	
 }

@@ -8,6 +8,7 @@ import java.util.Set
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.eclipse.xtend.lib.annotations.EqualsHashCode
 import org.eclipse.xtend.lib.annotations.ToString
+import java.util.stream.Collectors
 
 /**
  * A mutable version of {@link Block} to reduce memory usage when mining
@@ -21,7 +22,7 @@ class BlockMutable implements IBlock {
 	val Set<Mutation> mutations
 	
 	def immutable() {
-		return new Block(header.immutable(), Collections.unmodifiableSet(mutations))
+		return new Block(header.immutable(), Collections.unmodifiableSet(mutations.stream().collect(Collectors.toSet())))
 	}
 	
 }
