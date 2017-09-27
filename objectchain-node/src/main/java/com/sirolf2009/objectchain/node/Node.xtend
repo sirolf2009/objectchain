@@ -392,7 +392,10 @@ abstract class Node implements AutoCloseable {
 
 	override close() throws Exception {
 		server.close()
-		clients.forEach[close()]
+		val itr = clients.iterator
+		while(itr.hasNext()) {
+			itr.next().close()
+		}
 	}
 
 }
