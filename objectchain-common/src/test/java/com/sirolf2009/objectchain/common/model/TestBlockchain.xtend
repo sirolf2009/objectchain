@@ -15,7 +15,7 @@ class TestBlockchain {
 	@Test
 	def void testBranching() {
 		val kryo = TestKryo.kryo
-		val blockchain = new BlockChain(new HashSet(), new HashSet())
+		val blockchain = new BlockChain(new ArrayList(), new HashSet())
 		val genesis = new Block(new BlockHeader(newArrayOfSize(0), newArrayOfSize(0), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 0), new TreeSet())
 		blockchain.mainBranch = new Branch(genesis, new ArrayList(Arrays.asList(genesis)))
 		
@@ -43,9 +43,10 @@ class TestBlockchain {
 		Assert.assertTrue(blockchain.isBranchLonger(branch))
 		
 		blockchain.promoteBranch(branch)
+		
 		Assert.assertEquals(5, blockchain.size())
-		Assert.assertEquals(side4, blockchain.mainBranch.blocks.last)
-		Assert.assertEquals(main3, blockchain.sideBranches.get(0).blocks.last)
+		Assert.assertEquals(side4.toString(kryo), blockchain.mainBranch.blocks.last.toString(kryo))
+		Assert.assertEquals(main3.toString(kryo), blockchain.sideBranches.get(0).blocks.last.toString(kryo))
 	}
 
 }

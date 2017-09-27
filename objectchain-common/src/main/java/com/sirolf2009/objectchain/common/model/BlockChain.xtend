@@ -7,6 +7,7 @@ import java.util.Set
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.eclipse.xtend.lib.annotations.EqualsHashCode
 import org.eclipse.xtend.lib.annotations.ToString
+import java.util.List
 
 @ToString
 @Accessors
@@ -14,7 +15,7 @@ import org.eclipse.xtend.lib.annotations.ToString
 class BlockChain {
 
 	var Branch mainBranch
-	val Set<Branch> sideBranches
+	val List<Branch> sideBranches
 
 	val Set<Block> orphanedBlocks
 
@@ -52,7 +53,7 @@ class BlockChain {
 	}
 
 	def promoteBranch(Branch branch) {
-		val newSideBranch = new Branch(branch.root, blocks.subList(blocks.indexOf(branch.root), blocks.size()))
+		val newSideBranch = new Branch(branch.root, blocks.subList(blocks.indexOf(branch.root), blocks.size()).clone)
 		sideBranches.remove(branch)
 		sideBranches.add(newSideBranch)
 		blocks.removeAll(newSideBranch.blocks)

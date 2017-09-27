@@ -65,7 +65,7 @@ abstract class Node {
 		this.keys = keys
 		this.floatingMutations = new TreeSet()
 		this.clients = new ArrayList()
-		this.blockchain = new BlockChain(new HashSet(), new HashSet())
+		this.blockchain = new BlockChain(new ArrayList(), new HashSet())
 		KryoRegistrationNode.register(kryo)
 	}
 
@@ -227,7 +227,7 @@ abstract class Node {
 			log.info("Received {} blocks and {} transactions", sync.newBlocks.size(), sync.floatingMutations.size())
 			this.floatingMutations.addAll(sync.floatingMutations)
 			if(!synchronised) {
-				val chain = new BlockChain(new HashSet(), new HashSet()) => [
+				val chain = new BlockChain(new ArrayList(), new HashSet()) => [
 					mainBranch = new Branch(sync.newBlocks.get(0), new ArrayList(sync.newBlocks))
 				]
 				if(chain.blocks.size() == 1) {
@@ -248,7 +248,7 @@ abstract class Node {
 			} else { // TODO this shouldn't happen
 				val newBlocks = new ArrayList(blockchain.blocks)
 				newBlocks += sync.newBlocks
-				val newBlockchain = new BlockChain(new HashSet(), new HashSet()) => [
+				val newBlockchain = new BlockChain(new ArrayList(), new HashSet()) => [
 					mainBranch = new Branch(sync.newBlocks.get(0), new ArrayList(sync.newBlocks))
 				]
 				if(newBlockchain.blocks.size() == 1) {
