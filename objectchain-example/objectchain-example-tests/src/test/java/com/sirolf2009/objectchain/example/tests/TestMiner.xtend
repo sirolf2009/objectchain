@@ -9,15 +9,20 @@ import org.junit.Test
 import org.slf4j.LoggerFactory
 
 import static extension com.sirolf2009.objectchain.example.tests.Util.*
+import org.junit.Assert
 
 class TestMiner {
 	
 	@Test
 	def void testSingle() {
+		val AtomicReference<ChatTracker> tracker = new AtomicReference()
 		val AtomicReference<ChatNode> node = new AtomicReference()
 		val AtomicReference<ChatMiner> miner = new AtomicReference()
 		new Thread([
-			new ChatTracker(2012).start()
+			new ChatTracker(2012) => [
+				tracker.set(it)
+				start()
+			]
 		], "Tracker").start()
 		Thread.sleep(1000)
 		new Thread([
@@ -38,15 +43,24 @@ class TestMiner {
 
 		Thread.sleep(10000)
 
-		node.get().printBlockChain()
+		Assert.assertEquals(node.get().blockchain, miner.get().blockchain)
+		
+		tracker.get().close()
+		node.get().close()
+		miner.get().close()
+		Thread.sleep(1000) //allow for connections to close
 	}
 	
 	@Test
 	def void testMultiple() {
+		val AtomicReference<ChatTracker> tracker = new AtomicReference()
 		val AtomicReference<ChatNode> node = new AtomicReference()
 		val AtomicReference<ChatMiner> miner = new AtomicReference()
 		new Thread([
-			new ChatTracker(2012).start()
+			new ChatTracker(2012) => [
+				tracker.set(it)
+				start()
+			]
 		], "Tracker").start()
 		Thread.sleep(1000)
 		new Thread([
@@ -85,8 +99,12 @@ class TestMiner {
 
 		Thread.sleep(10000)
 
-		node.get().printBlockChain()
-		miner.get().printBlockChain()
+		Assert.assertEquals(node.get().blockchain, miner.get().blockchain)
+		
+		tracker.get().close()
+		node.get().close()
+		miner.get().close()
+		Thread.sleep(1000) //allow for connections to close
 	}
 	
 }

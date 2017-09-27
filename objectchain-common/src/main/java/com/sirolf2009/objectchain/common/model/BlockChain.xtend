@@ -8,6 +8,7 @@ import org.eclipse.xtend.lib.annotations.Accessors
 import org.eclipse.xtend.lib.annotations.EqualsHashCode
 import org.eclipse.xtend.lib.annotations.ToString
 import java.util.List
+import java.util.HashSet
 
 @ToString
 @Accessors
@@ -18,6 +19,15 @@ class BlockChain {
 	val List<Branch> sideBranches
 
 	val Set<Block> orphanedBlocks
+	
+	new() {
+		this(new ArrayList(), new HashSet())
+	}
+	
+	new(List<Branch> sideBranches, Set<Block> orphanedBlocks) {
+		this.sideBranches = sideBranches
+		this.orphanedBlocks = orphanedBlocks
+	}
 
 	def verify(Kryo kryo, int fromBlock) {
 		if(mainBranch.blocks.subList(fromBlock, mainBranch.blocks.size()).findFirst[!verify(kryo)] !== null) {

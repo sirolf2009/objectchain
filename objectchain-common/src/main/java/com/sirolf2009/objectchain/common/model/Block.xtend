@@ -3,7 +3,7 @@ package com.sirolf2009.objectchain.common.model
 import com.esotericsoftware.kryo.Kryo
 import com.sirolf2009.objectchain.common.MerkleTree
 import com.sirolf2009.objectchain.common.interfaces.IBlock
-import java.util.Set
+import java.util.TreeSet
 import org.eclipse.xtend.lib.annotations.Data
 import org.slf4j.LoggerFactory
 
@@ -13,7 +13,7 @@ import static extension com.sirolf2009.objectchain.common.crypto.Hashing.*
 
 	static val log = LoggerFactory.getLogger(Block)
 	val BlockHeader header
-	val Set<Mutation> mutations
+	val TreeSet<Mutation> mutations
 
 	override hash(Kryo kryo) {
 		return header.hash(kryo)

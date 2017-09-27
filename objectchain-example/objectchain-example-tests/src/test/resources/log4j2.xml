@@ -2,7 +2,7 @@
 <Configuration status="INFO">
     <Appenders>
         <Console name="STDOUT" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d [%-6p] %c{1} │ %m%n" />
+            <PatternLayout pattern="%d [%-6p] %t %c{1} │ %m%n" />
         </Console>
     </Appenders>
     <Loggers>
@@ -19,6 +19,9 @@
             <AppenderRef ref="STDOUT" />
         </Logger>
         <Logger name="miner" level="DEBUG" additivity="false">
+            <AppenderRef ref="STDOUT" />
+        </Logger>
+        <Logger name="com.sirolf2009.objectchain.common.MerkleTree" level="DEBUG" additivity="false">
             <AppenderRef ref="STDOUT" />
         </Logger>
     </Loggers>

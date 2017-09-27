@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory
 import org.slf4j.Logger
 
 @Accessors
-abstract class Node {
+abstract class Node implements AutoCloseable {
 
 	val Logger log
 	val Kryo kryo
@@ -65,7 +65,7 @@ abstract class Node {
 		this.keys = keys
 		this.floatingMutations = new TreeSet()
 		this.clients = new ArrayList()
-		this.blockchain = new BlockChain(new ArrayList(), new HashSet())
+		this.blockchain = new BlockChain()
 		KryoRegistrationNode.register(kryo)
 	}
 
@@ -227,7 +227,7 @@ abstract class Node {
 			log.info("Received {} blocks and {} transactions", sync.newBlocks.size(), sync.floatingMutations.size())
 			this.floatingMutations.addAll(sync.floatingMutations)
 			if(!synchronised) {
-				val chain = new BlockChain(new ArrayList(), new HashSet()) => [
+				val chain = new BlockChain() => [
 					mainBranch = new Branch(sync.newBlocks.get(0), new ArrayList(sync.newBlocks))
 				]
 				if(chain.blocks.size() == 1) {
@@ -388,6 +388,11 @@ abstract class Node {
 
 		client.connect(5000, tracker, 2012)
 		return queue.take()
+	}
+
+	override close() throws Exception {
+		server.close()
+		clients.forEach[close()]
 	}
 
 }

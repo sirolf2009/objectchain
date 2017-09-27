@@ -11,20 +11,17 @@ import java.util.TreeSet
 import org.slf4j.LoggerFactory
 import com.esotericsoftware.kryonet.FrameworkMessage.KeepAlive
 
-class Tracker {
+class Tracker implements AutoCloseable {
 	
 	static val log = LoggerFactory.getLogger(Tracker)
 	val int port
 	val nodes = new TreeSet<TrackedNode>()
+	val Server server
 	
 	new(int port) {
 		this.port = port
-	}
-	
-	def start() {
-		log.info("Starting tracker")
 
-		val server = new Server()
+		server = new Server()
 		KryoRegistrationTracker.register(server.kryo)
 		server.bind(port)
 
@@ -59,8 +56,15 @@ class Tracker {
 			}
 
 		})
-		
+	}
+	
+	def start() {
+		log.info("Starting tracker")
 		server.start()
+	}
+	
+	override close() throws Exception {
+		server.close()
 	}
 
 }

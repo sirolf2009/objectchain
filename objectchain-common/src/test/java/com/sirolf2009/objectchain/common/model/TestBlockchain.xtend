@@ -1,21 +1,20 @@
 package com.sirolf2009.objectchain.common.model
 
+import com.sirolf2009.objectchain.common.TestKryo
 import java.math.BigInteger
 import java.util.ArrayList
 import java.util.Arrays
 import java.util.Date
-import java.util.HashSet
 import java.util.TreeSet
-import org.junit.Test
-import com.sirolf2009.objectchain.common.TestKryo
 import junit.framework.Assert
+import org.junit.Test
 
 class TestBlockchain {
 
 	@Test
 	def void testBranching() {
 		val kryo = TestKryo.kryo
-		val blockchain = new BlockChain(new ArrayList(), new HashSet())
+		val blockchain = new BlockChain()
 		val genesis = new Block(new BlockHeader(newArrayOfSize(0), newArrayOfSize(0), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 0), new TreeSet())
 		blockchain.mainBranch = new Branch(genesis, new ArrayList(Arrays.asList(genesis)))
 		

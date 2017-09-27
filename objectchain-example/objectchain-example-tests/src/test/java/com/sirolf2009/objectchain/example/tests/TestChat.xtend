@@ -14,13 +14,16 @@ class TestChat {
 
 	@Test
 	def void test() {
+		val AtomicReference<ChatTracker> tracker = new AtomicReference()
 		val AtomicReference<ChatNode> node1 = new AtomicReference()
 		val AtomicReference<ChatNode> node2 = new AtomicReference()
 		val AtomicReference<ChatMiner> miner = new AtomicReference()
 		new Thread([
-			new ChatTracker(2012).start()
+			new ChatTracker(2012) => [
+				tracker.set(it)
+				start()
+			]
 		], "Tracker").start()
-		Thread.sleep(1000)
 		new Thread([
 			new ChatNode(LoggerFactory.getLogger("node1"), #["localhost"], 4567, Keys.generateAssymetricPair()) => [
 				node1.set(it)
@@ -52,6 +55,12 @@ class TestChat {
 		Thread.sleep(10000)
 
 		miner.get().printBlockChain()
+		
+		tracker.get().close()
+		node1.get().close()
+		node2.get().close()
+		miner.get().close()
+		Thread.sleep(1000) //allow for connections to close
 	}
 
 }

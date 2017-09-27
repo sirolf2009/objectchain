@@ -5,8 +5,13 @@ import java.util.ArrayList
 import java.util.List
 import com.esotericsoftware.kryo.Kryo
 import com.sirolf2009.objectchain.common.model.Mutation
+import org.slf4j.LoggerFactory
+
+import static extension com.sirolf2009.objectchain.common.crypto.Hashing.toHexString
 
 class MerkleTree {
+	
+	static val log = LoggerFactory.getLogger(MerkleTree)
 	
 	def public static List<Byte> merkleTreeMutations(Kryo kryo, Iterable<Mutation> hashes) {
 		return merkleTree(hashes.map[hash(kryo)].toList())
@@ -17,6 +22,7 @@ class MerkleTree {
 	}
 
 	def public static List<Byte> merkleTree(List<List<Byte>> hashes) {
+		log.debug(hashes.map[toHexString].join(", "))
 		if(hashes.size() == 0) {
 			throw new IllegalArgumentException("Cannot merkle tree an empty list")
 		}
