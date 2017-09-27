@@ -5,11 +5,16 @@ import com.sirolf2009.objectchain.example.node.ChatNode
 import java.security.KeyPair
 import java.util.List
 import org.objectchain.mining.model.Miner
+import org.slf4j.Logger
 
 class ChatMiner extends Miner {
 	
 	new(List<String> trackers, int nodePort, KeyPair keys) {
 		super(ChatNode.chatKryo, trackers, nodePort, keys)
+	}
+	
+	new(Logger logger, List<String> trackers, int nodePort, KeyPair keys) {
+		super(logger, ChatNode.chatKryo, trackers, nodePort, keys)
 	}
 
 	def static void main(String[] args) {

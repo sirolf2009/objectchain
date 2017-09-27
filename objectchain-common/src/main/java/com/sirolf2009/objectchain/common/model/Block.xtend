@@ -60,7 +60,7 @@ import static extension com.sirolf2009.objectchain.common.crypto.Hashing.*
 			target=«header.target.toString(16)»
 			nonce=«header.nonce»
 			«mutations.size()» Mutations [
-			«FOR m : mutations.toList().reverseView()»
+			«FOR m : mutations.toList()»
 				«m.toString(kryo)»
 			«ENDFOR»
 			]

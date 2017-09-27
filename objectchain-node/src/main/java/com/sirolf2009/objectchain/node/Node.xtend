@@ -35,11 +35,12 @@ import java.util.concurrent.ArrayBlockingQueue
 import java.util.function.Consumer
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.slf4j.LoggerFactory
+import org.slf4j.Logger
 
 @Accessors
 abstract class Node {
 
-	static val log = LoggerFactory.getLogger(Node)
+	val Logger log
 	val Kryo kryo
 	val List<String> trackers
 	val int nodePort
@@ -51,8 +52,13 @@ abstract class Node {
 
 	val BlockChain blockchain
 	val Set<Mutation> floatingMutations
-
+	
 	new(Kryo kryo, List<String> trackers, int nodePort, KeyPair keys) {
+		this(LoggerFactory.getLogger(Node), kryo, trackers, nodePort, keys)
+	}
+	
+	new(Logger log, Kryo kryo, List<String> trackers, int nodePort, KeyPair keys) {
+		this.log = log
 		this.kryo = kryo
 		this.trackers = trackers
 		this.nodePort = nodePort
@@ -69,7 +75,7 @@ abstract class Node {
 		if(peers.size() == 0) {
 			synchronised = true
 			log.info("No peers found, creating genesis block")
-			val genesis = new Block(new BlockHeader(newArrayOfSize(0), newArrayOfSize(0), new Date(), new BigInteger("000022FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 0), new TreeSet())
+			val genesis = new Block(new BlockHeader(newArrayOfSize(0), newArrayOfSize(0), new Date(), new BigInteger("000044FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 0), new TreeSet())
 			blockchain.mainBranch = new Branch(genesis, new ArrayList(Arrays.asList(genesis)))
 			onSynchronised()
 		} else {
@@ -276,6 +282,7 @@ abstract class Node {
 			if(newBlock.block.canExpand(kryo, blockchain)) {
 				log.info("New block has been mined")
 				blockchain.blocks.add(newBlock.block)
+				floatingMutations.removeAll(newBlock.block.mutations)
 				broadcast(newBlock, Optional.of(connection))
 				onBlockchainExpanded()
 			} else if(blockchain.sideBranches.findFirst[newBlock.block.canExpand(kryo, blocks.last)] !== null) {
@@ -335,7 +342,7 @@ abstract class Node {
 		log.trace("Broadcasting {}", object)
 		val Consumer<Connection> send = [
 			if(!skip.isPresent || it != skip.get()) {
-				log.debug("sending {} to {}", object, it)
+				log.trace("sending {} to {}", object, it)
 				sendTCP(object)
 			}
 		]

@@ -10,17 +10,20 @@ import java.security.KeyPair
 import java.util.HashMap
 import java.util.List
 import java.util.Scanner
-import org.apache.logging.log4j.LogManager
+import org.slf4j.Logger
 
 import static extension com.sirolf2009.objectchain.common.crypto.Hashing.*
 
 class ChatNode extends Node {
 
-	static val log = LogManager.getLogger(ChatNode)
 	val usernames = new HashMap()
 
 	new(List<String> trackers, int nodePort, KeyPair keys) {
 		super(chatKryo, trackers, nodePort, keys)
+	}
+
+	new(Logger logger, List<String> trackers, int nodePort, KeyPair keys) {
+		super(logger, chatKryo, trackers, nodePort, keys)
 	}
 
 	override onSynchronised() {

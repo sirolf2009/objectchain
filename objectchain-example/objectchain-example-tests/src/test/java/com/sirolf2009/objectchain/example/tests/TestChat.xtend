@@ -1,13 +1,14 @@
 package com.sirolf2009.objectchain.example.tests
 
 import com.sirolf2009.objectchain.common.crypto.Keys
-import com.sirolf2009.objectchain.example.common.model.Message
 import com.sirolf2009.objectchain.example.miner.ChatMiner
 import com.sirolf2009.objectchain.example.node.ChatNode
 import com.sirolf2009.objectchain.example.tracker.ChatTracker
 import java.util.concurrent.atomic.AtomicReference
 import org.junit.Test
-import com.sirolf2009.objectchain.example.common.model.ClaimUsername
+import org.slf4j.LoggerFactory
+
+import static extension com.sirolf2009.objectchain.example.tests.Util.*
 
 class TestChat {
 
@@ -21,21 +22,21 @@ class TestChat {
 		], "Tracker").start()
 		Thread.sleep(1000)
 		new Thread([
-			new ChatNode(#["localhost"], 4567, Keys.generateAssymetricPair()) => [
+			new ChatNode(LoggerFactory.getLogger("node1"), #["localhost"], 4567, Keys.generateAssymetricPair()) => [
 				node1.set(it)
 				start()
 			]
 		], "Node1").start()
 		Thread.sleep(1000)
 		new Thread([
-			new ChatNode(#["localhost"], 4568, Keys.generateAssymetricPair()) => [
+			new ChatNode(LoggerFactory.getLogger("node2"), #["localhost"], 4568, Keys.generateAssymetricPair()) => [
 				node2.set(it)
 				start()
 			]
 		], "Node2").start()
 		Thread.sleep(1000)
 		new Thread([
-			new ChatMiner(#["localhost"], 4569, Keys.generateAssymetricPair()) => [
+			new ChatMiner(LoggerFactory.getLogger("miner"), #["localhost"], 4569, Keys.generateAssymetricPair()) => [
 				miner.set(it)
 				start()
 			]
@@ -50,27 +51,7 @@ class TestChat {
 
 		Thread.sleep(10000)
 
-		miner.get().blockchain.blocks.forEach [
-			println(it.toString(node1.get().kryo))
-		]
-		println()
-		miner.get().floatingMutations.forEach [
-			println(it.toString(node1.get().kryo))
-		]
-	}
-
-	def say(AtomicReference<ChatNode> node, String msg) {
-		node.get().submitMutation(new Message() => [
-			message = msg
-		])
-		Thread.sleep(2000)
-	}
-
-	def claim(AtomicReference<ChatNode> node, String user) {
-		node.get().submitMutation(new ClaimUsername() => [
-			username = user
-		])
-		Thread.sleep(2000)
+		miner.get().printBlockChain()
 	}
 
 }
