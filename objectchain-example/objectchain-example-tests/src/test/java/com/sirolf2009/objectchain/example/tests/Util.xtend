@@ -14,7 +14,7 @@ class Util {
 	
 	def static printBlockChain(Node node) {
 		println("####################BLOCKS####################")
-		node.blockchain.blocks.forEach [
+		node.blockchain.mainBranch.blocks.forEach [
 			println(it.toString(node.kryo))
 		]
 		println("#################TRANSACTIONS#################")

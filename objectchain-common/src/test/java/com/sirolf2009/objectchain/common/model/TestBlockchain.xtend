@@ -8,7 +8,6 @@ import java.util.Date
 import java.util.TreeSet
 import junit.framework.Assert
 import org.junit.Test
-import java.time.Duration
 
 class TestBlockchain {
 
@@ -23,7 +22,7 @@ class TestBlockchain {
 		val main2 = new Block(new BlockHeader(main1.hash(kryo), newArrayOfSize(0), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 2), new TreeSet())
 		val main3 = new Block(new BlockHeader(main2.hash(kryo), newArrayOfSize(0), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 3), new TreeSet())
 		blockchain.mainBranch.blocks.addAll(main1, main2, main3)
-		Assert.assertEquals(4, blockchain.blocks.size())
+		Assert.assertEquals(4, blockchain.mainBranch.blocks.size())
 		
 		val side1 = new Block(new BlockHeader(genesis.hash(kryo), newArrayOfSize(0), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 4), new TreeSet())
 		val side2 = new Block(new BlockHeader(side1.hash(kryo), newArrayOfSize(0), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 5), new TreeSet())
@@ -44,30 +43,9 @@ class TestBlockchain {
 		
 		blockchain.promoteBranch(branch)
 		
-		Assert.assertEquals(5, blockchain.size())
+		Assert.assertEquals(5, blockchain.mainBranch.size())
 		Assert.assertEquals(side4.toString(kryo), blockchain.mainBranch.blocks.last.toString(kryo))
 		Assert.assertEquals(main3.toString(kryo), blockchain.sideBranches.get(0).blocks.last.toString(kryo))
-	}
-	
-	@Test
-	def void testTarget() {
-		val currentTarget = BigInteger.valueOf(2)
-		val blockDuration = Duration.ofMinutes(10).toMillis()
-		val retargetDuration = Duration.ofDays(7).toMillis()
-		Assert.assertEquals(BigInteger.valueOf(4), BlockChain.getNewTarget(currentTarget, 2016, blockDuration, retargetDuration))
-		
-		val kryo = TestKryo.kryo
-		val blockchain = new BlockChain()
-		val genesis = new Block(new BlockHeader(newArrayOfSize(0), newArrayOfSize(0), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 0), new TreeSet())
-		blockchain.mainBranch = new Branch(genesis, new ArrayList(Arrays.asList(genesis)))
-		val main1 = new Block(new BlockHeader(genesis.hash(kryo), newArrayOfSize(0), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 1), new TreeSet())
-		val main2 = new Block(new BlockHeader(main1.hash(kryo), newArrayOfSize(0), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 2), new TreeSet())
-		val main3 = new Block(new BlockHeader(main2.hash(kryo), newArrayOfSize(0), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 3), new TreeSet())
-		blockchain.mainBranch.blocks.addAll(main1, main2, main3)
-
-		Assert.assertFalse(blockchain.shouldRetarget(5))
-		Assert.assertTrue(blockchain.shouldRetarget(4))
-		Assert.assertFalse(blockchain.shouldRetarget(3))
 	}
 
 }

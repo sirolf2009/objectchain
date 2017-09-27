@@ -9,6 +9,7 @@ import org.eclipse.xtend.lib.annotations.Data
 
 import static extension com.sirolf2009.objectchain.common.crypto.CryptoHelper.*
 import static extension com.sirolf2009.objectchain.common.crypto.Hashing.*
+import com.sirolf2009.objectchain.common.exception.MutationVerificationException
 
 @Data class Mutation implements IHashable, Comparable<Mutation> {
 	
@@ -29,6 +30,12 @@ import static extension com.sirolf2009.objectchain.common.crypto.Hashing.*
 		this.object = object
 		this.signature = signature
 		this.publicKey = publicKey
+	}
+	
+	def verify(Kryo kryo) throws MutationVerificationException {
+		if(!verifySignature()) {
+			throw new MutationVerificationException(this, "Signature is not valid")
+		}
 	}
 	
 	def verifySignature() {

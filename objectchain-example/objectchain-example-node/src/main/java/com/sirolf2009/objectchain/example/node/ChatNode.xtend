@@ -3,6 +3,7 @@ package com.sirolf2009.objectchain.example.node
 import com.esotericsoftware.kryo.Kryo
 import com.sirolf2009.objectchain.common.crypto.Keys
 import com.sirolf2009.objectchain.common.model.Mutation
+import com.sirolf2009.objectchain.example.common.model.ChatConfiguration
 import com.sirolf2009.objectchain.example.common.model.ClaimUsername
 import com.sirolf2009.objectchain.example.common.model.Message
 import com.sirolf2009.objectchain.node.Node
@@ -19,11 +20,11 @@ class ChatNode extends Node {
 	val usernames = new HashMap()
 
 	new(List<String> trackers, int nodePort, KeyPair keys) {
-		super(chatKryo, trackers, nodePort, keys)
+		super(new ChatConfiguration(), chatKryo, trackers, nodePort, keys)
 	}
 
 	new(Logger logger, List<String> trackers, int nodePort, KeyPair keys) {
-		super(logger, chatKryo, trackers, nodePort, keys)
+		super(logger, new ChatConfiguration(), chatKryo, trackers, nodePort, keys)
 	}
 
 	override onSynchronised() {

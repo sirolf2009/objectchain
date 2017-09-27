@@ -55,14 +55,14 @@ class TestNewBlock {
 			], node1.get().keys)
 		])
 		
-		val newBlockHeader = new BlockHeader(node1.get().blockchain.blocks.last.hash(node2.get().kryo), MerkleTree.merkleTreeMutations(node2.get().kryo, mutations), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 0)
+		val newBlockHeader = new BlockHeader(node1.get().blockchain.mainBranch.blocks.last.hash(node2.get().kryo), MerkleTree.merkleTreeMutations(node2.get().kryo, mutations), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 0)
 		val newBlock = new Block(newBlockHeader, mutations)
 		node2.get().broadcast(new NewBlock() => [
 			it.block = newBlock
 		])
 		Thread.sleep(1000)
 		
-		Assert.assertEquals(node1.get().blockchain.blocks.size(), 2)
+		Assert.assertEquals(node1.get().blockchain.mainBranch.blocks.size(), 2)
 		
 		tracker.get().close()
 		node1.get().close()

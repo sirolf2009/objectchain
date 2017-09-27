@@ -2,12 +2,15 @@ package org.objectchain.mining.model
 
 import com.esotericsoftware.kryo.Kryo
 import com.sirolf2009.objectchain.common.MerkleTree
+import com.sirolf2009.objectchain.common.exception.BranchExpansionException
+import com.sirolf2009.objectchain.common.model.Configuration
 import com.sirolf2009.objectchain.common.model.Mutation
 import com.sirolf2009.objectchain.network.node.NewBlock
 import com.sirolf2009.objectchain.node.Node
 import java.security.KeyPair
 import java.util.Date
 import java.util.List
+import java.util.TreeSet
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -16,17 +19,17 @@ abstract class Miner extends Node {
 	val log = LoggerFactory.getLogger(Miner)
 	var BlockMutable pendingBlock
 
-	new(Kryo kryo, List<String> trackers, int nodePort, KeyPair keys) {
-		super(kryo, trackers, nodePort, keys)
+	new(Configuration configuration, Kryo kryo, List<String> trackers, int nodePort, KeyPair keys) {
+		super(configuration, kryo, trackers, nodePort, keys)
 	}
 
-	new(Logger logger, Kryo kryo, List<String> trackers, int nodePort, KeyPair keys) {
-		super(logger, kryo, trackers, nodePort, keys)
+	new(Logger logger, Configuration configuration, Kryo kryo, List<String> trackers, int nodePort, KeyPair keys) {
+		super(logger, configuration, kryo, trackers, nodePort, keys)
 	}
 
 	override onInitialized() {
 		new Thread([
-			pendingBlock = new BlockMutable(new BlockHeaderMutable(blockchain.blocks.last.header.hash(kryo), blockchain.blocks.last.header.target), floatingMutations) => [
+			pendingBlock = new BlockMutable(new BlockHeaderMutable(blockchain.mainBranch.blocks.last.header.hash(kryo), blockchain.mainBranch.blocks.last.header.target), new TreeSet()) => [
 				header.time = new Date()
 			]
 			calculateMerkle()
@@ -44,7 +47,7 @@ abstract class Miner extends Node {
 					var completed = false
 					while(!completed) {
 						pendingBlock.header.nonce = nonce
-						if(pendingBlock.header.isBelowTarget(kryo)) {
+						if(pendingBlock.header.immutable().isBelowTarget(kryo)) {
 							completed = true
 							onCompleted(pendingBlock)
 						} else {
@@ -58,29 +61,37 @@ abstract class Miner extends Node {
 		}
 	}
 
-	override addMutation(Mutation mutation) {
+	override onMutationReceived(Mutation mutation) {
 		synchronized(pendingBlock) {
-			if(super.addMutation(mutation)) {
+			if(pendingBlock.mutations.size() < configuration.maxMutationsPerBlock) {
+				pendingBlock.mutations.add(mutation)
 				calculateMerkle()
-				return true
 			}
-			return false
 		}
 	}
 
 	def onCompleted(BlockMutable blockMutable) {
-		val block = blockMutable.immutable()
-		log.info("I have mined a block!")
-		log.debug(block.toString(kryo))
-		blockchain.blocks.add(block)
-		val newBlock = new NewBlock() => [
-			it.block = block
-		]
-		newBlock.broadcast()
-		floatingMutations.clear()
-		pendingBlock = new BlockMutable(new BlockHeaderMutable(block.header.hash(kryo), block.header.target), floatingMutations) => [
-			header.time = new Date()
-		]
+		log.info(blockMutable.toString(kryo))
+		try {
+			val block = blockMutable.immutable()
+			log.info("I have mined a block!")
+			blockchain.mainBranch.addBlock(kryo, configuration, block)
+			val newBlock = new NewBlock() => [
+				it.block = block
+			]
+			newBlock.broadcast()
+			floatingMutations.removeAll(block.mutations)
+			val target = if(blockchain.mainBranch.shouldRetarget(configuration.targetValidity)) {
+					blockchain.mainBranch.getNewTarget(configuration.targetValidity, configuration.blockDuration.toMillis())
+				} else {
+					block.header.target
+				}
+			pendingBlock = new BlockMutable(new BlockHeaderMutable(block.header.hash(kryo), target), new TreeSet()) => [
+				header.time = new Date()
+			]
+		} catch(BranchExpansionException e) {
+			log.error("The mined block didn't fit branch={}\nblock={}", e.branch, e.newBlock.toString(kryo), e)
+		}
 	}
 
 	def calculateMerkle() {
@@ -88,7 +99,7 @@ abstract class Miner extends Node {
 			pendingBlock.header.merkleRoot = MerkleTree.merkleTreeMutations(kryo, pendingBlock.mutations)
 		}
 	}
-	
+
 	override getLog() {
 		return log
 	}
