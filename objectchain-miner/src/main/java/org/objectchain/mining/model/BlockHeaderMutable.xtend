@@ -1,5 +1,6 @@
 package org.objectchain.mining.model
 
+import com.esotericsoftware.kryo.Kryo
 import com.sirolf2009.objectchain.common.interfaces.IBlockHeader
 import com.sirolf2009.objectchain.common.model.BlockHeader
 import java.math.BigInteger
@@ -20,12 +21,16 @@ class BlockHeaderMutable implements IBlockHeader {
 	val short version = 1 as short
 	val List<Byte> previousBlock
 	var List<Byte> merkleRoot
-	var Date time
+	var Date time = new Date()
 	val BigInteger target
 	var int nonce
 	
 	def immutable() {
 		return new BlockHeader(previousBlock, merkleRoot, time, target, nonce)
+	}
+	
+	override hash(Kryo kryo) {
+		return immutable().hash(kryo)
 	}
 	
 }

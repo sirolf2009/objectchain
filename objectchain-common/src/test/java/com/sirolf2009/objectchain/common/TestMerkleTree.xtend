@@ -1,10 +1,41 @@
 package com.sirolf2009.objectchain.common
 
-import org.junit.Test
-import com.sirolf2009.objectchain.common.MerkleTree
+import com.esotericsoftware.kryo.Kryo
+import com.sirolf2009.objectchain.common.crypto.Keys
+import com.sirolf2009.objectchain.common.model.Block
+import com.sirolf2009.objectchain.common.model.BlockHeader
+import com.sirolf2009.objectchain.common.model.Mutation
+import java.math.BigInteger
+import java.util.Date
+import java.util.TreeSet
 import org.junit.Assert
+import org.junit.Test
 
 class TestMerkleTree {
+	
+	@Test
+	def void testMutations() {
+		val kryo = new Kryo()
+		KryoRegistryCommon.register(kryo)
+		val keys = Keys.generateAssymetricPair()
+		val mutation1 = new Mutation("Hello World! 1", keys)
+		val mutation2 = new Mutation("Hello World! 2", keys)
+		
+		val mutation1Hash = mutation1.hash(kryo)
+		
+		Assert.assertEquals(mutation1Hash, MerkleTree.merkleTreeMutations(kryo, #[mutation1]))
+		new TreeSet(#[mutation1])
+		Assert.assertEquals(mutation1Hash, MerkleTree.merkleTreeMutations(kryo, #[mutation1]))
+		
+		Assert.assertEquals(MerkleTree.merkleTreeMutations(kryo, new TreeSet(#[mutation1])), MerkleTree.merkleTreeMutations(kryo, #[mutation1]))
+		Assert.assertEquals(MerkleTree.merkleTreeMutations(kryo, new TreeSet(#[mutation1])), MerkleTree.merkleTreeMutations(kryo, new TreeSet(#[mutation1])))
+		Assert.assertEquals(MerkleTree.merkleTreeMutations(kryo, new TreeSet(#[mutation1, mutation2])), MerkleTree.merkleTreeMutations(kryo, new TreeSet(#[mutation2, mutation1])))
+		Assert.assertEquals(mutation1Hash, MerkleTree.merkleTreeMutations(kryo, #[mutation1]))
+		
+		val genesis = new Block(new BlockHeader(newArrayOfSize(0), newArrayOfSize(0), new Date(), BigInteger.ONE, 0), new TreeSet())
+		val block = new Block(new BlockHeader(genesis.hash(kryo), MerkleTree.merkleTreeMutations(kryo, #[mutation1]), new Date(), BigInteger.ONE, 1), new TreeSet(#[mutation1]))
+		Assert.assertEquals(mutation1Hash, block.header.merkleRoot)
+	}
 
 	@Test
 	def void testBitcoinPizzaTransaction() {

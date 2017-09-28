@@ -1,7 +1,8 @@
 package com.sirolf2009.objectchain.common.model
 
+import com.esotericsoftware.kryo.Kryo
+import com.sirolf2009.objectchain.common.KryoRegistryCommon
 import com.sirolf2009.objectchain.common.MerkleTree
-import com.sirolf2009.objectchain.common.TestKryo
 import com.sirolf2009.objectchain.common.crypto.Keys
 import java.math.BigInteger
 import java.util.Date
@@ -12,7 +13,8 @@ class TestBlock {
 	
 	@Test
 	def void testTarget() {
-		val kryo = TestKryo.kryo
+		val kryo = new Kryo()
+		KryoRegistryCommon.register(kryo)
 		val msg = new Message() => [
 			msg = "Hello World"
 		]

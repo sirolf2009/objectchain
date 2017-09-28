@@ -38,9 +38,9 @@ import com.sirolf2009.objectchain.common.exception.BranchExpansionException
 	}
 
 	def targetCheck(Kryo kryo, Configuration configuration) throws BranchVerificationException {
-		blocks.forEach [
+		blocks.stream().skip(1).forEach [
 			val shouldRetarget = shouldRetarget(configuration.targetValidity)
-			val hasRetargeted = blocks.get(blocks.indexOf(it) - 1).header.target.equals(header.target)
+			val hasRetargeted = !blocks.get(blocks.indexOf(it) - 1).header.target.toString().equals(header.target.toString())
 			if(shouldRetarget && !hasRetargeted) {
 				throw new BranchVerificationException(this, it.getPreviousBlock(), it, "Target should have changed")
 			}
@@ -51,9 +51,8 @@ import com.sirolf2009.objectchain.common.exception.BranchExpansionException
 	}
 
 	def hashCheck(Kryo kryo) throws BranchVerificationException {
-		var prevousHash = blocks.get(0).hash(kryo)
-		for (var i = 0 + 1; i < size(); i++) {
-			if(!blocks.get(i).header.previousBlock.equals(prevousHash)) {
+		for (var i = 1; i < size(); i++) {
+			if(!blocks.get(i).header.previousBlock.equals(blocks.get(i-1).header.hash(kryo))) {
 				throw new BranchVerificationException(this, blocks.get(i - 1), blocks.get(i), "prevHash does not point to the previous hash")
 			}
 		}
@@ -93,6 +92,15 @@ import com.sirolf2009.objectchain.common.exception.BranchExpansionException
 
 	def size() {
 		return blocks.size()
+	}
+	
+	def toString(Kryo kryo) {
+		return
+		'''
+		«FOR b : blocks»
+			«b.toString(kryo)»
+		«ENDFOR»
+		'''
 	}
 
 }

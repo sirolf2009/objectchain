@@ -8,7 +8,6 @@ import com.sirolf2009.objectchain.common.model.Mutation
 import com.sirolf2009.objectchain.network.node.NewBlock
 import com.sirolf2009.objectchain.node.Node
 import java.security.KeyPair
-import java.util.Date
 import java.util.List
 import java.util.TreeSet
 import org.slf4j.Logger
@@ -29,9 +28,7 @@ abstract class Miner extends Node {
 
 	override onInitialized() {
 		new Thread([
-			pendingBlock = new BlockMutable(new BlockHeaderMutable(blockchain.mainBranch.blocks.last.header.hash(kryo), blockchain.mainBranch.blocks.last.header.target), new TreeSet()) => [
-				header.time = new Date()
-			]
+			pendingBlock = new BlockMutable(new BlockHeaderMutable(blockchain.mainBranch.blocks.last.header.hash(kryo), blockchain.mainBranch.blocks.last.header.target), new TreeSet())
 			calculateMerkle()
 			mine(0)
 		], "Mining").start()
@@ -86,11 +83,9 @@ abstract class Miner extends Node {
 				} else {
 					block.header.target
 				}
-			pendingBlock = new BlockMutable(new BlockHeaderMutable(block.header.hash(kryo), target), new TreeSet()) => [
-				header.time = new Date()
-			]
+			pendingBlock = new BlockMutable(new BlockHeaderMutable(block.header.hash(kryo), target), new TreeSet())
 		} catch(BranchExpansionException e) {
-			log.error("The mined block didn't fit branch={}\nblock={}", e.branch, e.newBlock.toString(kryo), e)
+			log.error("The mined block didn't fit branch={}\nblock={}", e.branch.toString(kryo), e.newBlock.toString(kryo), e)
 		}
 	}
 

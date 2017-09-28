@@ -1,6 +1,7 @@
 package com.sirolf2009.objectchain.common.model
 
-import com.sirolf2009.objectchain.common.TestKryo
+import com.esotericsoftware.kryo.Kryo
+import com.sirolf2009.objectchain.common.KryoRegistryCommon
 import java.math.BigInteger
 import java.util.ArrayList
 import java.util.Arrays
@@ -13,7 +14,8 @@ class TestBlockchain {
 
 	@Test
 	def void testBranching() {
-		val kryo = TestKryo.kryo
+		val kryo = new Kryo()
+		KryoRegistryCommon.register(kryo)
 		val blockchain = new BlockChain()
 		val genesis = new Block(new BlockHeader(newArrayOfSize(0), newArrayOfSize(0), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 0), new TreeSet())
 		blockchain.mainBranch = new Branch(genesis, new ArrayList(Arrays.asList(genesis)))
