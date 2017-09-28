@@ -24,6 +24,7 @@ class TestChat {
 				start()
 			]
 		], "Tracker").start()
+		Thread.sleep(1000)
 		new Thread([
 			new ChatNode(LoggerFactory.getLogger("node1"), #["localhost"], 4567, Keys.generateAssymetricPair()) => [
 				node1.set(it)
