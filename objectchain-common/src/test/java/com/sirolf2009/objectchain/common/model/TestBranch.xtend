@@ -58,9 +58,9 @@ class TestBranch {
 		val main3 = new Block(new BlockHeader(main2.hash(kryo), newArrayOfSize(0), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 3), new TreeSet())
 		branch.blocks.addAll(main1, main2, main3)
 
+		Assert.assertTrue(branch.shouldRetarget(3))
+		Assert.assertFalse(branch.shouldRetarget(4))
 		Assert.assertFalse(branch.shouldRetarget(5))
-		Assert.assertTrue(branch.shouldRetarget(4))
-		Assert.assertFalse(branch.shouldRetarget(3))
 	}
 
 }

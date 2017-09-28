@@ -42,10 +42,10 @@ import com.sirolf2009.objectchain.common.exception.BranchExpansionException
 			val shouldRetarget = shouldRetarget(configuration.targetValidity)
 			val hasRetargeted = !blocks.get(blocks.indexOf(it) - 1).header.target.toString().equals(header.target.toString())
 			if(shouldRetarget && !hasRetargeted) {
-				throw new BranchVerificationException(this, it.getPreviousBlock(), it, "Target should have changed")
+				throw new BranchVerificationException(this, it.getPreviousBlock(), it, "Target should have changed, size="+size()+" targetValidity="+configuration.targetValidity)
 			}
 			if(!shouldRetarget && hasRetargeted) {
-				throw new BranchVerificationException(this, it.getPreviousBlock(), it, "Target should not have changed")
+				throw new BranchVerificationException(this, it.getPreviousBlock(), it, "Target should not have changed, size="+size()+" targetValidity="+configuration.targetValidity)
 			}
 		]
 	}
@@ -64,11 +64,15 @@ import com.sirolf2009.objectchain.common.exception.BranchExpansionException
 	}
 
 	def shouldRetarget(int targetValidity) {
-		return shouldRetarget(targetValidity, blocks.get(blocks.size() - 1))
+		return shouldRetarget(targetValidity, blocks.size())
 	}
 
 	def shouldRetarget(int targetValidity, Block block) {
-		return (blocks.indexOf(block) + 1) % targetValidity == 0
+		return shouldRetarget(targetValidity, blocks.indexOf(block) + 1)
+	}
+
+	def shouldRetarget(int targetValidity, int branchSize) {
+		return branchSize != 1 && branchSize % targetValidity == 1
 	}
 
 	def getNewTarget(int targetValidity, long blockDuration) {
