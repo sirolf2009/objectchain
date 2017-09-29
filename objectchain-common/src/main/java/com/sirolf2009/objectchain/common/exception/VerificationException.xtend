@@ -1,6 +1,8 @@
 package com.sirolf2009.objectchain.common.exception
 
-class VerificationException extends Exception{
+import org.eclipse.xtend.lib.annotations.Accessors
+
+@Accessors class VerificationException extends Exception{
 	
 	new(String message) {
 		super(message)
