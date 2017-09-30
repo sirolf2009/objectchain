@@ -22,7 +22,7 @@ class TestBranch {
 		val keys = Keys.generateAssymetricPair()
 		val genesis = new Block(new BlockHeader(newArrayOfSize(0), newArrayOfSize(0), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 0), new TreeSet())
 		val branch = new Branch(genesis, new ArrayList(Arrays.asList(genesis)))
-		val configuration = new Configuration(4, Duration.ofMillis(1), 10, 1024)
+		val configuration = new Configuration(4, Duration.ofMillis(1), 10, 1024, new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16))
 
 		val mutation1 = new Mutation("Hello World! 1", keys)
 		val mutation2 = new Mutation("Hello World! 2", keys)

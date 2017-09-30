@@ -39,7 +39,7 @@ class TestMining {
 	}
 	
 	def configuration() {
-		return new Configuration(4, Duration.ofSeconds(1), 1, 1024)
+		return new Configuration(4, Duration.ofSeconds(1), 1, 1024, new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16))
 	}
 
 }

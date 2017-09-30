@@ -14,6 +14,7 @@ import java.util.Scanner
 import org.slf4j.Logger
 
 import static extension com.sirolf2009.objectchain.common.crypto.Hashing.*
+import com.sirolf2009.objectchain.common.model.Configuration
 
 class ChatNode extends Node {
 
@@ -25,6 +26,10 @@ class ChatNode extends Node {
 
 	new(Logger logger, List<String> trackers, int nodePort, KeyPair keys) {
 		super(logger, new ChatConfiguration(), [chatKryo], trackers, nodePort, keys)
+	}
+
+	new(Logger logger, Configuration configuration, List<String> trackers, int nodePort, KeyPair keys) {
+		super(logger, configuration, [chatKryo], trackers, nodePort, keys)
 	}
 
 	override onSynchronised() {

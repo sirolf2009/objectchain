@@ -4,12 +4,14 @@ import com.sirolf2009.objectchain.common.MerkleTree
 import com.sirolf2009.objectchain.common.crypto.Keys
 import com.sirolf2009.objectchain.common.model.Block
 import com.sirolf2009.objectchain.common.model.BlockHeader
+import com.sirolf2009.objectchain.common.model.Configuration
 import com.sirolf2009.objectchain.common.model.Mutation
 import com.sirolf2009.objectchain.example.common.model.Message
 import com.sirolf2009.objectchain.example.node.ChatNode
 import com.sirolf2009.objectchain.example.tracker.ChatTracker
 import com.sirolf2009.objectchain.network.node.NewBlock
 import java.math.BigInteger
+import java.time.Duration
 import java.util.Date
 import java.util.TreeSet
 import java.util.concurrent.atomic.AtomicReference
@@ -24,6 +26,7 @@ class TestNewBlock {
 		val AtomicReference<ChatTracker> tracker = new AtomicReference()
 		val AtomicReference<ChatNode> node1 = new AtomicReference()
 		val AtomicReference<ChatNode> node2 = new AtomicReference()
+		val config = new Configuration(8, Duration.ofMinutes(1), 512, 512, new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16))
 		new Thread([
 			new ChatTracker(2012) => [
 				tracker.set(it)
@@ -32,14 +35,14 @@ class TestNewBlock {
 		], "Tracker").start()
 		Thread.sleep(1000)
 		new Thread([
-			new ChatNode(LoggerFactory.getLogger("node1"), #["localhost"], 4567, Keys.generateAssymetricPair()) => [
+			new ChatNode(LoggerFactory.getLogger("node1"), config, #["localhost"], 4567, Keys.generateAssymetricPair()) => [
 				node1.set(it)
 				start()
 			]
 		], "Node1").start()
 		Thread.sleep(1000)
 		new Thread([
-			new ChatNode(LoggerFactory.getLogger("node2"), #["localhost"], 4568, Keys.generateAssymetricPair()) => [
+			new ChatNode(LoggerFactory.getLogger("node2"), config, #["localhost"], 4568, Keys.generateAssymetricPair()) => [
 				node2.set(it)
 				start()
 			]
@@ -55,19 +58,19 @@ class TestNewBlock {
 			], node1.get().keys)
 		])
 		
-		val newBlockHeader = node2.get().kryoPool.run[kryo| new BlockHeader(node2.get().blockchain.mainBranch.blocks.last.hash(kryo), MerkleTree.merkleTreeMutations(kryo, mutations), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 0)]
+		val newBlockHeader = node2.get().kryoPool.run[kryo| new BlockHeader(node2.get().blockchain.mainBranch.blocks.last.hash(kryo), MerkleTree.merkleTreeMutations(kryo, mutations), new Date(), node2.get().blockchain.mainBranch.lastBlock.header.target, 0)]
 		val newBlock = new Block(newBlockHeader, mutations)
 		node2.get().broadcast(new NewBlock() => [
 			it.block = newBlock
 		])
 		Thread.sleep(1000)
 		
-		Assert.assertEquals(node1.get().blockchain.mainBranch.blocks.size(), 2)
-		
 		tracker.get().close()
 		node1.get().close()
 		node2.get().close()
 		Thread.sleep(1000) //allow for connections to close
+		
+		Assert.assertEquals(node1.get().blockchain.mainBranch.blocks.size(), 2)
 	}
 	
 }

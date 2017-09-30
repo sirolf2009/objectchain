@@ -42,13 +42,13 @@ class TestMiner {
 		node.say("Hello World!")
 
 		Thread.sleep(10000)
-
-		Assert.assertEquals(node.get().blockchain, miner.get().blockchain)
 		
 		tracker.get().close()
 		node.get().close()
 		miner.get().close()
 		Thread.sleep(1000) //allow for connections to close
+
+		Assert.assertEquals(node.get().blockchain, miner.get().blockchain)
 	}
 	
 	@Test
@@ -98,13 +98,13 @@ class TestMiner {
 		node.say("Hello World! 9", 0)
 
 		Thread.sleep(10000)
-
-		Assert.assertEquals(node.get().blockchain, miner.get().blockchain)
 		
 		tracker.get().close()
 		node.get().close()
 		miner.get().close()
 		Thread.sleep(1000) //allow for connections to close
+
+		Assert.assertEquals(node.get().blockchain, miner.get().blockchain)
 	}
 	
 }

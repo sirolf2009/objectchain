@@ -1,6 +1,8 @@
 package com.sirolf2009.objectchain.node
 
 import com.esotericsoftware.kryo.Kryo
+import com.esotericsoftware.kryo.pool.KryoFactory
+import com.esotericsoftware.kryo.pool.KryoPool
 import com.esotericsoftware.kryonet.Client
 import com.esotericsoftware.kryonet.Connection
 import com.esotericsoftware.kryonet.FrameworkMessage.KeepAlive
@@ -25,7 +27,6 @@ import com.sirolf2009.objectchain.network.node.SyncResponse
 import com.sirolf2009.objectchain.network.tracker.TrackedNode
 import com.sirolf2009.objectchain.network.tracker.TrackerList
 import com.sirolf2009.objectchain.network.tracker.TrackerRequest
-import java.math.BigInteger
 import java.security.KeyPair
 import java.util.ArrayList
 import java.util.Arrays
@@ -40,8 +41,6 @@ import java.util.function.Supplier
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import com.esotericsoftware.kryo.pool.KryoFactory
-import com.esotericsoftware.kryo.pool.KryoPool
 
 @Accessors
 abstract class Node implements AutoCloseable {
@@ -89,7 +88,7 @@ abstract class Node implements AutoCloseable {
 		if(peers.size() == 0) {
 			synchronised = true
 			log.info("No peers found, creating genesis block")
-			val genesis = new Block(new BlockHeader(newArrayOfSize(0), newArrayOfSize(0), new Date(), new BigInteger("000044FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 0), new TreeSet())
+			val genesis = new Block(new BlockHeader(newArrayOfSize(0), newArrayOfSize(0), new Date(), configuration.initialTarget, 0), new TreeSet())
 			blockchain.mainBranch = new Branch(genesis, new ArrayList(Arrays.asList(genesis)))
 			onSynchronised()
 		} else {

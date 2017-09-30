@@ -1,5 +1,6 @@
 package com.sirolf2009.objectchain.common.model
 
+import java.math.BigInteger
 import java.time.Duration
 import org.eclipse.xtend.lib.annotations.Data
 
@@ -13,5 +14,7 @@ import org.eclipse.xtend.lib.annotations.Data
 	val int maxMutationsPerBlock
 	/** How many bytes may 1 transaction be */
 	val long maxSizePerMutation
+	/**  */
+	val BigInteger initialTarget
 	
 }
