@@ -29,6 +29,7 @@ abstract class Miner extends Node {
 	override onInitialized() {
 		new Thread([
 			pendingBlock = new BlockMutable(new BlockHeaderMutable(blockchain.mainBranch.blocks.last.header.hash(kryo), blockchain.mainBranch.blocks.last.header.target), new TreeSet())
+			pendingBlock.mutations.addAll(floatingMutations)
 			calculateMerkle()
 			mine(0)
 		], "Mining").start()
