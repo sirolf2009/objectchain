@@ -157,7 +157,9 @@ abstract class Node implements AutoCloseable {
 
 				override synchronized disconnected(Connection connection) {
 					log.info("Disconnected from peer {}", connection)
-					clients.remove(client)
+					synchronized(clients) {
+						clients.remove(client)
+					}
 				}
 
 			})
@@ -297,7 +299,7 @@ abstract class Node implements AutoCloseable {
 
 	def synchronized handleNewBlock(Connection connection, NewBlock newBlock) {
 		log.info("Received new block")
-		kryoPool.run [kryo|
+		kryoPool.run [ kryo |
 			if(blockchain.mainBranch.blocks.last().hash(kryo).equals(newBlock.block.hash(kryo))) {
 				log.info("Received block is not new")
 				return null
@@ -427,9 +429,11 @@ abstract class Node implements AutoCloseable {
 
 	override close() throws Exception {
 		server.close()
-		val itr = clients.iterator
-		while(itr.hasNext()) {
-			itr.next().close()
+		synchronized(clients) {
+			val itr = clients.iterator
+			while(itr.hasNext()) {
+				itr.next().close()
+			}
 		}
 	}
 
