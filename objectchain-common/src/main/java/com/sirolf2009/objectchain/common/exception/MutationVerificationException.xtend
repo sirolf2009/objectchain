@@ -1,8 +1,9 @@
 package com.sirolf2009.objectchain.common.exception
 
 import com.sirolf2009.objectchain.common.model.Mutation
+import org.eclipse.xtend.lib.annotations.Accessors
 
-class MutationVerificationException extends VerificationException {
+@Accessors class MutationVerificationException extends VerificationException {
 	
 	val Mutation mutation
 	

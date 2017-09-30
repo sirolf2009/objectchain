@@ -15,11 +15,15 @@ class Util {
 	def static printBlockChain(Node node) {
 		println("####################BLOCKS####################")
 		node.blockchain.mainBranch.blocks.forEach [
-			println(it.toString(node.kryo))
+			node.kryoPool.run[kryo|
+				println(it.toString(kryo))
+			]
 		]
 		println("#################TRANSACTIONS#################")
 		node.floatingMutations.forEach [
-			println(it.toString(node.kryo))
+			node.kryoPool.run[kryo|
+				println(it.toString(kryo))
+			]
 		]
 	}
 

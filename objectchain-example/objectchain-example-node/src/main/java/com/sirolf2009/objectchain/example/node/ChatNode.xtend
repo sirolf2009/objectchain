@@ -20,11 +20,11 @@ class ChatNode extends Node {
 	val usernames = new HashMap()
 
 	new(List<String> trackers, int nodePort, KeyPair keys) {
-		super(new ChatConfiguration(), chatKryo, trackers, nodePort, keys)
+		super(new ChatConfiguration(), [chatKryo], trackers, nodePort, keys)
 	}
 
 	new(Logger logger, List<String> trackers, int nodePort, KeyPair keys) {
-		super(logger, new ChatConfiguration(), chatKryo, trackers, nodePort, keys)
+		super(logger, new ChatConfiguration(), [chatKryo], trackers, nodePort, keys)
 	}
 
 	override onSynchronised() {

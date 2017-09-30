@@ -2,9 +2,9 @@ package com.sirolf2009.objectchain.common.exception
 
 import com.sirolf2009.objectchain.common.model.Block
 import com.sirolf2009.objectchain.common.model.Branch
-import org.eclipse.xtend.lib.annotations.Data
+import org.eclipse.xtend.lib.annotations.Accessors
 
-@Data class BranchExpansionException extends Exception {
+@Accessors class BranchExpansionException extends Exception {
 	
 	val Branch branch
 	val Block newBlock

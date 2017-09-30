@@ -55,7 +55,7 @@ class TestNewBlock {
 			], node1.get().keys)
 		])
 		
-		val newBlockHeader = new BlockHeader(node1.get().blockchain.mainBranch.blocks.last.hash(node2.get().kryo), MerkleTree.merkleTreeMutations(node2.get().kryo, mutations), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 0)
+		val newBlockHeader = node2.get().kryoPool.run[kryo| new BlockHeader(node2.get().blockchain.mainBranch.blocks.last.hash(kryo), MerkleTree.merkleTreeMutations(kryo, mutations), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 0)]
 		val newBlock = new Block(newBlockHeader, mutations)
 		node2.get().broadcast(new NewBlock() => [
 			it.block = newBlock

@@ -10,6 +10,7 @@ import com.sirolf2009.objectchain.node.Node
 import java.security.KeyPair
 import java.util.List
 import java.util.TreeSet
+import java.util.function.Supplier
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -18,25 +19,28 @@ abstract class Miner extends Node {
 	val log = LoggerFactory.getLogger(Miner)
 	var BlockMutable pendingBlock
 
-	new(Configuration configuration, Kryo kryo, List<String> trackers, int nodePort, KeyPair keys) {
-		super(configuration, kryo, trackers, nodePort, keys)
+	new(Configuration configuration, Supplier<Kryo> kryoSupplier, List<String> trackers, int nodePort, KeyPair keys) {
+		super(configuration, kryoSupplier, trackers, nodePort, keys)
 	}
 
-	new(Logger logger, Configuration configuration, Kryo kryo, List<String> trackers, int nodePort, KeyPair keys) {
-		super(logger, configuration, kryo, trackers, nodePort, keys)
+	new(Logger logger, Configuration configuration, Supplier<Kryo> kryoSupplier, List<String> trackers, int nodePort, KeyPair keys) {
+		super(logger, configuration, kryoSupplier, trackers, nodePort, keys)
 	}
 
 	override onInitialized() {
 		new Thread([
-			pendingBlock = new BlockMutable(new BlockHeaderMutable(blockchain.mainBranch.blocks.last.header.hash(kryo), blockchain.mainBranch.blocks.last.header.target), new TreeSet())
-			pendingBlock.mutations.addAll(floatingMutations)
-			calculateMerkle()
-			mine(0)
+			kryoPool.run [ kryo |
+				pendingBlock = new BlockMutable(new BlockHeaderMutable(blockchain.mainBranch.blocks.last.header.hash(kryo), blockchain.mainBranch.blocks.last.header.target), new TreeSet())
+				pendingBlock.mutations.addAll(floatingMutations)
+				calculateMerkle(kryo)
+				mine(kryo, 0)
+				return null
+			]
 		], "Mining").start()
 		log.info("Mining started")
 	}
 
-	def mine(int startNonce) {
+	def mine(Kryo kryo, int startNonce) {
 		while(true) {
 			Thread.sleep(1000)
 			synchronized(pendingBlock) {
@@ -47,7 +51,7 @@ abstract class Miner extends Node {
 						pendingBlock.header.nonce = nonce
 						if(pendingBlock.header.immutable().isBelowTarget(kryo)) {
 							completed = true
-							onCompleted(pendingBlock)
+							onCompleted(kryo, pendingBlock)
 						} else {
 							nonce++
 						}
@@ -63,16 +67,19 @@ abstract class Miner extends Node {
 		synchronized(pendingBlock) {
 			if(pendingBlock.mutations.size() < configuration.maxMutationsPerBlock) {
 				pendingBlock.mutations.add(mutation)
-				calculateMerkle()
+				kryoPool.run [ kryo |
+					calculateMerkle(kryo)
+					return null
+				]
 			}
 		}
 	}
 
-	def onCompleted(BlockMutable blockMutable) {
-		log.info(blockMutable.toString(kryo))
+	def onCompleted(Kryo kryo, BlockMutable blockMutable) {
 		try {
 			val block = blockMutable.immutable()
 			log.info("I have mined a block!")
+			log.info(block.toString(kryo))
 			blockchain.mainBranch.addBlock(kryo, configuration, block)
 			val newBlock = new NewBlock() => [
 				it.block = block
@@ -90,7 +97,7 @@ abstract class Miner extends Node {
 		}
 	}
 
-	def calculateMerkle() {
+	def calculateMerkle(Kryo kryo) {
 		if(pendingBlock.mutations !== null && pendingBlock.mutations.size() > 0) {
 			pendingBlock.header.merkleRoot = MerkleTree.merkleTreeMutations(kryo, pendingBlock.mutations)
 		}

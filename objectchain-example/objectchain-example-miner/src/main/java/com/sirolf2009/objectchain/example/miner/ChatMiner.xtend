@@ -11,11 +11,11 @@ import com.sirolf2009.objectchain.example.common.model.ChatConfiguration
 class ChatMiner extends Miner {
 	
 	new(List<String> trackers, int nodePort, KeyPair keys) {
-		super(new ChatConfiguration(), ChatNode.chatKryo, trackers, nodePort, keys)
+		super(new ChatConfiguration(), [ChatNode.chatKryo], trackers, nodePort, keys)
 	}
 	
 	new(Logger logger, List<String> trackers, int nodePort, KeyPair keys) {
-		super(logger, new ChatConfiguration(), ChatNode.chatKryo, trackers, nodePort, keys)
+		super(logger, new ChatConfiguration(), [ChatNode.chatKryo], trackers, nodePort, keys)
 	}
 
 	def static void main(String[] args) {
