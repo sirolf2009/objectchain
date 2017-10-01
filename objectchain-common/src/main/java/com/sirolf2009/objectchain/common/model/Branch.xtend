@@ -24,7 +24,6 @@ import org.eclipse.xtend.lib.annotations.Data
 			blocks.add(block)
 			verify(kryo, configuration)
 			states.add(states.get(states.size()-1).apply(block))
-			println(lastState)
 		} catch(Exception e) {
 			blocks.remove(block)
 			throw new BranchExpansionException(this, block, "Failed to add block to the chain", e)

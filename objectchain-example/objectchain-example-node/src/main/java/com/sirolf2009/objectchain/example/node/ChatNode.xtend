@@ -3,24 +3,20 @@ package com.sirolf2009.objectchain.example.node
 import com.esotericsoftware.kryo.Kryo
 import com.sirolf2009.objectchain.common.crypto.Keys
 import com.sirolf2009.objectchain.common.model.Configuration
-import com.sirolf2009.objectchain.common.model.Mutation
 import com.sirolf2009.objectchain.example.common.model.ChatConfiguration
 import com.sirolf2009.objectchain.example.common.model.ChatState
 import com.sirolf2009.objectchain.example.common.model.ClaimUsername
 import com.sirolf2009.objectchain.example.common.model.Message
 import com.sirolf2009.objectchain.node.Node
 import java.security.KeyPair
+import java.util.ArrayList
 import java.util.HashMap
 import java.util.List
 import java.util.Scanner
 import java.util.Stack
 import org.slf4j.Logger
 
-import static extension com.sirolf2009.objectchain.common.crypto.Hashing.*
-
 class ChatNode extends Node {
-
-	val usernames = new HashMap()
 
 	new(List<String> trackers, int nodePort, KeyPair keys) {
 		super(new ChatConfiguration(), [chatKryo], trackers, nodePort, keys)
@@ -35,7 +31,7 @@ class ChatNode extends Node {
 	}
 	
 	override getOriginalState() {
-		return new ChatState(new Stack(), new HashMap())
+		return new ChatState(new ArrayList(), new Stack(), new HashMap())
 	}
 
 	override onSynchronised() {
@@ -64,17 +60,10 @@ class ChatNode extends Node {
 			}
 		].start()
 	}
-
-	override onMutationReceived(Mutation mutation) {
-		if(mutation.object instanceof Message) {
-			val publicKeyHex = mutation.publicKey.encoded.toHexString()
-			println('''«usernames.getOrDefault(publicKeyHex, publicKeyHex)»: «(mutation.object as Message).message»''')
-		} else if(mutation.object instanceof ClaimUsername) {
-			val publicKeyHex = mutation.publicKey.encoded.toHexString()
-			val username = (mutation.object as ClaimUsername).username
-			usernames.put(publicKeyHex, username)
-			println('''«publicKeyHex» is now known as «username»''')
-		}
+	
+	override onBranchExpanded() {
+		val lastState = blockchain.mainBranch.lastState as ChatState
+		println(lastState.newChat.join("\n"))
 	}
 
 	def static getChatKryo() {

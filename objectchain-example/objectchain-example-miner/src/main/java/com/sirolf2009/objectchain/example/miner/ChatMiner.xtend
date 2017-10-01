@@ -2,14 +2,15 @@ package com.sirolf2009.objectchain.example.miner
 
 import com.sirolf2009.objectchain.common.crypto.Keys
 import com.sirolf2009.objectchain.example.common.model.ChatConfiguration
+import com.sirolf2009.objectchain.example.common.model.ChatState
 import com.sirolf2009.objectchain.example.node.ChatNode
 import com.sirolf2009.objectchain.mining.model.Miner
 import java.security.KeyPair
-import java.util.List
-import org.slf4j.Logger
-import com.sirolf2009.objectchain.example.common.model.ChatState
-import java.util.Stack
+import java.util.ArrayList
 import java.util.HashMap
+import java.util.List
+import java.util.Stack
+import org.slf4j.Logger
 
 class ChatMiner extends Miner {
 	
@@ -22,7 +23,7 @@ class ChatMiner extends Miner {
 	}
 	
 	override getOriginalState() {
-		return new ChatState(new Stack(), new HashMap())
+		return new ChatState(new ArrayList(), new Stack(), new HashMap())
 	}
 
 	def static void main(String[] args) {

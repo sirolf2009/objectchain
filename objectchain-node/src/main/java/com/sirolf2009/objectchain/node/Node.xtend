@@ -318,6 +318,7 @@ abstract class Node implements AutoCloseable {
 				log.info("New block has been mined")
 				try {
 					blockchain.mainBranch.addBlock(kryo, configuration, newBlock.block)
+					onBranchExpanded()
 				} catch(BranchExpansionException e) {
 					log.error("Received block, but it breaks the main branch verification. branch={}\nblock={}", blockchain.mainBranch.toString(kryo), newBlock.block.toString(kryo), e)
 				}
@@ -326,6 +327,7 @@ abstract class Node implements AutoCloseable {
 				val branch = blockchain.sideBranches.findFirst[canExpandWith(kryo, newBlock.block)]
 				try {
 					branch.addBlock(kryo, configuration, newBlock.block)
+					onBranchExpanded()
 					log.error("Added block {}", newBlock.block.hash(kryo))
 				} catch(BranchVerificationException e) {
 					log.error("Received block, but it breaks the side branch verification", e)
@@ -336,8 +338,6 @@ abstract class Node implements AutoCloseable {
 					// TODO re-evaluate all mutations since fork
 					// |-> actually, store them in branches instead, should make the code a lot easier
 					onBranchReplace()
-				} else {
-					onBranchExpanded()
 				}
 				broadcast(newBlock, Optional.of(connection))
 			} else {
