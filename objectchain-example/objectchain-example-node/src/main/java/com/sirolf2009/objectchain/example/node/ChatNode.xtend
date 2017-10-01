@@ -30,10 +30,12 @@ class ChatNode extends Node {
 		super(logger, configuration, [chatKryo], trackers, nodePort, keys)
 	}
 	
+	/** The original state of the blockchain, or "genesis" state. In this case it features just some empty lists */
 	override getOriginalState() {
 		return new ChatState(new ArrayList(), new Stack(), new HashMap())
 	}
 
+	/** When we launch the application, we first synchronise to download any missing data. After sync we start running our chat */
 	override onSynchronised() {
 		new Thread [
 			log.info("Initialized, running chat...")
@@ -46,6 +48,9 @@ class ChatNode extends Node {
 						val claim = new ClaimUsername() => [
 							username = line.replaceFirst("/claim", "").trim()
 						]
+						// Submit mutation broadcasts something to the other nodes in the network. 
+						// These are automatically signed by your keys provided in the constructor of this class
+						// And will eventually be included in the blockchain
 						submitMutation(claim)
 					} else if(line.startsWith("/help")) {
 						println("Commands:")
@@ -55,17 +60,26 @@ class ChatNode extends Node {
 					val message = new Message() => [
 						message = line
 					]
+					//Same as the submit mutation above, except this one submits a chat message. The other one submits a claim to an username
 					submitMutation(message)
 				}
 			}
 		].start()
 	}
 	
+	/**
+	 * This is called whenever a block is added to the blockchain. We retrieve its state to see wich messages were included in the block.
+	 * See {@link ChatState} for more 
+	 */
 	override onBranchExpanded() {
 		val lastState = blockchain.mainBranch.lastState as ChatState
 		println(lastState.newChat.join("\n"))
 	}
-
+	
+	/**
+	 * Our instance of kryo. Note that this is a supplier, because we need a kryo instance for every thread that uses kryo.
+	 * We only register our own objects.
+	 */
 	def static getChatKryo() {
 		return new Kryo() => [
 			register(Message)
