@@ -23,7 +23,7 @@ import org.eclipse.xtend.lib.annotations.Data
 		try {
 			blocks.add(block)
 			verify(kryo, configuration)
-			states.add(states.get(states.size()-1).apply(block))
+			states.add(states.get(states.size() - 1).apply(block))
 		} catch(Exception e) {
 			blocks.remove(block)
 			throw new BranchExpansionException(this, block, "Failed to add block to the chain", e)
@@ -36,6 +36,11 @@ import org.eclipse.xtend.lib.annotations.Data
 		} catch(BlockVerificationException e) {
 			throw new BranchVerificationException(this, e.block.getPreviousBlock(), e.block, "Failed to verify block", e)
 		}
+		blocks.stream().skip(1).forEach [
+			if(header.previousBlock.size() == 0 && header.merkleRoot.size() == 0 && mutations.size() == 0) {
+				throw new BranchVerificationException(this, it.getPreviousBlock(), it, "Found empty block which isn't a genesis block")
+			}
+		]
 		hashCheck(kryo)
 		targetCheck(kryo, configuration)
 	}
@@ -45,17 +50,17 @@ import org.eclipse.xtend.lib.annotations.Data
 			val shouldRetarget = shouldRetarget(configuration.targetValidity)
 			val hasRetargeted = !blocks.get(blocks.indexOf(it) - 1).header.target.toString().equals(header.target.toString())
 			if(shouldRetarget && !hasRetargeted) {
-				throw new BranchVerificationException(this, it.getPreviousBlock(), it, "Target should have changed, size="+size()+" targetValidity="+configuration.targetValidity)
+				throw new BranchVerificationException(this, it.getPreviousBlock(), it, "Target should have changed, size=" + size() + " targetValidity=" + configuration.targetValidity)
 			}
 			if(!shouldRetarget && hasRetargeted) {
-				throw new BranchVerificationException(this, it.getPreviousBlock(), it, "Target should not have changed, size="+size()+" targetValidity="+configuration.targetValidity)
+				throw new BranchVerificationException(this, it.getPreviousBlock(), it, "Target should not have changed, size=" + size() + " targetValidity=" + configuration.targetValidity)
 			}
 		]
 	}
 
 	def hashCheck(Kryo kryo) throws BranchVerificationException {
 		for (var i = 1; i < size(); i++) {
-			if(!blocks.get(i).header.previousBlock.equals(blocks.get(i-1).header.hash(kryo))) {
+			if(!blocks.get(i).header.previousBlock.equals(blocks.get(i - 1).header.hash(kryo))) {
 				throw new BranchVerificationException(this, blocks.get(i - 1), blocks.get(i), "prevHash does not point to the previous hash")
 			}
 		}
@@ -108,13 +113,12 @@ import org.eclipse.xtend.lib.annotations.Data
 	def size() {
 		return blocks.size()
 	}
-	
+
 	def toString(Kryo kryo) {
-		return
-		'''
-		«FOR b : blocks»
-			«b.toString(kryo)»
-		«ENDFOR»
+		return '''
+			«FOR b : blocks»
+				«b.toString(kryo)»
+			«ENDFOR»
 		'''
 	}
 

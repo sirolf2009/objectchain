@@ -271,23 +271,7 @@ abstract class Node implements AutoCloseable {
 					}
 				}
 			} else {
-				// TODO
-//				val newBlocks = new ArrayList(blockchain.blocks)
-//				newBlocks += sync.newBlocks
-//				val newBlockchain = new BlockChain(new ArrayList(), new HashSet()) => [
-//					mainBranch = new Branch(sync.newBlocks.get(0), new ArrayList(sync.newBlocks))
-//				]
-//				if(newBlockchain.blocks.size() == 1) {
-//					blockchain.blocks += sync.newBlocks
-//					log.info("Received genesis block")
-//					onSynchronised()
-//				} else if(newBlockchain.verify(kryo, configuration, blockchain.blocks.size() - 1)) {
-//					blockchain.blocks += sync.newBlocks
-//					log.info("Blockchain has been synchronised")
-//					onSynchronised()
-//				} else {
-//					// TODO handle branching
-//				}
+				sync.newBlocks.forEach[handleNewBlock(connection, it)]
 			}
 		} else {
 			log.warn("{} send an empty sync response", connection)
@@ -301,47 +285,48 @@ abstract class Node implements AutoCloseable {
 	}
 
 	def synchronized handleNewBlock(Connection connection, NewBlock newBlock) {
+		handleNewBlock(connection, newBlock.block)
+	}
+
+	def synchronized handleNewBlock(Connection connection, Block newBlock) {
 		log.info("Received new block")
 		kryoPool.run [ kryo |
-			if(blockchain.mainBranch.blocks.last().hash(kryo).equals(newBlock.block.hash(kryo))) {
-				log.info("Received block is not new")
+			if(blockchain.mainBranch.blocks.last().hash(kryo).equals(newBlock.hash(kryo))) {
 				return null
 			}
 			// TODO Reject if duplicate of block we have in any of the three categories
 			try {
-				newBlock.block.verify(kryo, configuration)
+				newBlock.verify(kryo, configuration)
 			} catch(BlockVerificationException e) {
 				log.error("Failed to verify new block", e)
 				return null
 			}
-			if(blockchain.mainBranch.canExpandWith(kryo, newBlock.block)) {
+			if(blockchain.mainBranch.canExpandWith(kryo, newBlock)) {
 				log.info("New block has been mined")
 				try {
-					blockchain.mainBranch.addBlock(kryo, configuration, newBlock.block)
+					blockchain.mainBranch.addBlock(kryo, configuration, newBlock)
 					onBranchExpanded()
 				} catch(BranchExpansionException e) {
-					log.error("Received block, but it breaks the main branch verification. branch={}\nblock={}", blockchain.mainBranch.toString(kryo), newBlock.block.toString(kryo), e)
+					log.error("Received block, but it breaks the main branch verification. branch={}\nblock={}", blockchain.mainBranch.toString(kryo), newBlock.toString(kryo), e)
 				}
-			} else if(blockchain.sideBranches.findFirst[canExpandWith(kryo, newBlock.block)] !== null) {
+			} else if(blockchain.sideBranches.findFirst[canExpandWith(kryo, newBlock)] !== null) {
 				log.info("New block on side branch has been mined")
-				val branch = blockchain.sideBranches.findFirst[canExpandWith(kryo, newBlock.block)]
+				val branch = blockchain.sideBranches.findFirst[canExpandWith(kryo, newBlock)]
 				try {
-					branch.addBlock(kryo, configuration, newBlock.block)
+					branch.addBlock(kryo, configuration, newBlock)
 					onBranchExpanded()
-					log.error("Added block {}", newBlock.block.hash(kryo))
+					log.error("Added block {}", newBlock.hash(kryo))
 				} catch(BranchVerificationException e) {
 					log.error("Received block, but it breaks the side branch verification", e)
 				}
 				if(blockchain.isBranchLonger(branch)) {
 					log.info("Side branch is longer than the main branch. Setting it as the main branch")
 					blockchain.promoteBranch(branch)
-					// TODO re-evaluate all mutations since fork
-					// |-> actually, store them in branches instead, should make the code a lot easier
 					onBranchReplace()
 				}
 				broadcast(newBlock, Optional.of(connection))
 			} else {
-				if(blockchain.orphanedBlocks.add(newBlock.block)) {
+				if(blockchain.orphanedBlocks.add(newBlock)) {
 					log.info("Received orphan block, sending sync request", connection)
 					connection.sendTCP(new SyncRequest() => [
 						lastKnownBlock = Optional.of(blockchain.mainBranch.blocks.last.hash(kryo))

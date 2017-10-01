@@ -14,7 +14,7 @@ import org.eclipse.xtend.lib.annotations.Data
 	val int maxMutationsPerBlock
 	/** How many bytes may 1 transaction be */
 	val long maxSizePerMutation
-	/**  */
+	/** The initial target for the genesis block */
 	val BigInteger initialTarget
 	
 }

@@ -31,7 +31,7 @@ import static extension com.sirolf2009.objectchain.common.crypto.Hashing.*
 			throw new BlockVerificationException(this, '''Block is not below target, block=«new BigInteger(header.hash(kryo).toHexString(), 16)» target=«header.target»''')
 		}
 		try {
-			mutations.forEach[verify(kryo)]
+			mutations.forEach[verify(kryo, configuration)]
 		} catch(MutationVerificationException e) {
 			throw new BlockVerificationException(this, "Failed to verify mutation", e)
 		}

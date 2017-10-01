@@ -32,9 +32,12 @@ import com.sirolf2009.objectchain.common.exception.MutationVerificationException
 		this.publicKey = publicKey
 	}
 	
-	def verify(Kryo kryo) throws MutationVerificationException {
+	def verify(Kryo kryo, Configuration configuration) throws MutationVerificationException {
 		if(!verifySignature()) {
 			throw new MutationVerificationException(this, "Signature is not valid")
+		}
+		if(getBytes(kryo).size() > configuration.maxSizePerMutation) {
+			throw new MutationVerificationException(this, '''Mutation exceeds max size. maxSize=«configuration.maxSizePerMutation» size=«getBytes(kryo).size()»''')
 		}
 	}
 	
