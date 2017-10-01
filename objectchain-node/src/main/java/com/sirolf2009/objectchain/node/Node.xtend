@@ -97,7 +97,7 @@ abstract class Node implements AutoCloseable {
 		}
 		host()
 	}
-	
+
 	def abstract IState getOriginalState()
 
 	def host() {
@@ -259,7 +259,8 @@ abstract class Node implements AutoCloseable {
 						kryoPool.run [
 							branch.verify(it, configuration)
 							synchronised = true
-							blockchain.mainBranch = new Branch(sync.newBlocks.get(0), new ArrayList(sync.newBlocks), new ArrayList(Arrays.asList(originalState)))
+							blockchain.mainBranch = new Branch(sync.newBlocks.get(0), new ArrayList(Arrays.asList(sync.newBlocks.get(0))), new ArrayList(Arrays.asList(originalState)))
+							sync.newBlocks.stream().skip(1).forEach[block|blockchain.mainBranch.addBlock(it, configuration, block)]
 							log.info("Blockchain has been downloaded")
 							onSynchronised()
 							onInitialized()
