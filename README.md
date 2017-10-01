@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/sirolf2009/objectchain.svg?branch=master)](https://travis-ci.org/sirolf2009/objectchain)
 # Objectchain
 
 Objectchain is a framework for creating peer-to-peer blockchains. It is written in Eclipse Xtend and therefore compiles to the JVM. It is inspired by, but not a complete replica of the Bitcoin Blockchain. The aim of the project is to provide all the structure of the blockchain, so that users would only need to implement the "rules" and the models of the application. 
