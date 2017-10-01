@@ -41,6 +41,7 @@ import java.util.function.Supplier
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import com.sirolf2009.objectchain.common.interfaces.IState
 
 @Accessors
 abstract class Node implements AutoCloseable {
@@ -89,13 +90,15 @@ abstract class Node implements AutoCloseable {
 			synchronised = true
 			log.info("No peers found, creating genesis block")
 			val genesis = new Block(new BlockHeader(newArrayOfSize(0), newArrayOfSize(0), new Date(), configuration.initialTarget, 0), new TreeSet())
-			blockchain.mainBranch = new Branch(genesis, new ArrayList(Arrays.asList(genesis)))
+			blockchain.mainBranch = new Branch(genesis, new ArrayList(Arrays.asList(genesis)), new ArrayList(Arrays.asList(originalState)))
 			onSynchronised()
 		} else {
 			peers.forEach[connectToNode(it)]
 		}
 		host()
 	}
+	
+	def abstract IState getOriginalState()
 
 	def host() {
 		log.info("Starting host on {}", nodePort)
@@ -242,11 +245,11 @@ abstract class Node implements AutoCloseable {
 			log.info("Received {} blocks and {} transactions", sync.newBlocks.size(), sync.floatingMutations.size())
 			this.floatingMutations.addAll(sync.floatingMutations)
 			if(!synchronised) {
-				val branch = new Branch(sync.newBlocks.get(0), new ArrayList(sync.newBlocks))
+				val branch = new Branch(sync.newBlocks.get(0), new ArrayList(sync.newBlocks), new ArrayList())
 				if(branch.blocks.size() == 1) {
 					if(branch.blocks.get(0).header.previousBlock.size() == 0 && branch.blocks.get(0).mutations.size() == 0) {
 						synchronised = true
-						blockchain.mainBranch = new Branch(sync.newBlocks.get(0), new ArrayList(Arrays.asList(sync.newBlocks.get(0))))
+						blockchain.mainBranch = new Branch(sync.newBlocks.get(0), new ArrayList(Arrays.asList(sync.newBlocks.get(0))), new ArrayList(Arrays.asList(originalState)))
 						log.info("Blockchain has been downloaded")
 						onSynchronised()
 						onInitialized()
@@ -256,7 +259,7 @@ abstract class Node implements AutoCloseable {
 						kryoPool.run [
 							branch.verify(it, configuration)
 							synchronised = true
-							blockchain.mainBranch = new Branch(sync.newBlocks.get(0), new ArrayList(sync.newBlocks))
+							blockchain.mainBranch = new Branch(sync.newBlocks.get(0), new ArrayList(sync.newBlocks), new ArrayList(Arrays.asList(originalState)))
 							log.info("Blockchain has been downloaded")
 							onSynchronised()
 							onInitialized()

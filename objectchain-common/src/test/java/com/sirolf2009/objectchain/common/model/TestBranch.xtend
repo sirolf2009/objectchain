@@ -21,7 +21,7 @@ class TestBranch {
 		KryoRegistryCommon.register(kryo)
 		val keys = Keys.generateAssymetricPair()
 		val genesis = new Block(new BlockHeader(newArrayOfSize(0), newArrayOfSize(0), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 0), new TreeSet())
-		val branch = new Branch(genesis, new ArrayList(Arrays.asList(genesis)))
+		val branch = new Branch(genesis, new ArrayList(Arrays.asList(genesis)), new ArrayList(Arrays.asList(new TestState(1))))
 		val configuration = new Configuration(4, Duration.ofMillis(1), 10, 1024, new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16))
 
 		val mutation1 = new Mutation("Hello World! 1", keys)
@@ -35,6 +35,8 @@ class TestBranch {
 		branch.addBlock(kryo, configuration, block1)
 		branch.addBlock(kryo, configuration, block2)
 		branch.addBlock(kryo, configuration, block3)
+		
+		Assert.assertEquals(4, (branch.lastState as TestState).count)
 	}
 
 	@Test
@@ -47,7 +49,7 @@ class TestBranch {
 		val kryo = new Kryo()
 		KryoRegistryCommon.register(kryo)
 		val genesis = new Block(new BlockHeader(newArrayOfSize(0), newArrayOfSize(0), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 0), new TreeSet())
-		val branch = new Branch(genesis, new ArrayList(Arrays.asList(genesis)))
+		val branch = new Branch(genesis, new ArrayList(Arrays.asList(genesis)), new ArrayList())
 
 		Assert.assertFalse(branch.shouldRetarget(5))
 		Assert.assertFalse(branch.shouldRetarget(4))

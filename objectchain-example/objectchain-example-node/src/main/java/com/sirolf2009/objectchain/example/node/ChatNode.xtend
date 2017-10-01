@@ -2,8 +2,10 @@ package com.sirolf2009.objectchain.example.node
 
 import com.esotericsoftware.kryo.Kryo
 import com.sirolf2009.objectchain.common.crypto.Keys
+import com.sirolf2009.objectchain.common.model.Configuration
 import com.sirolf2009.objectchain.common.model.Mutation
 import com.sirolf2009.objectchain.example.common.model.ChatConfiguration
+import com.sirolf2009.objectchain.example.common.model.ChatState
 import com.sirolf2009.objectchain.example.common.model.ClaimUsername
 import com.sirolf2009.objectchain.example.common.model.Message
 import com.sirolf2009.objectchain.node.Node
@@ -11,10 +13,10 @@ import java.security.KeyPair
 import java.util.HashMap
 import java.util.List
 import java.util.Scanner
+import java.util.Stack
 import org.slf4j.Logger
 
 import static extension com.sirolf2009.objectchain.common.crypto.Hashing.*
-import com.sirolf2009.objectchain.common.model.Configuration
 
 class ChatNode extends Node {
 
@@ -30,6 +32,10 @@ class ChatNode extends Node {
 
 	new(Logger logger, Configuration configuration, List<String> trackers, int nodePort, KeyPair keys) {
 		super(logger, configuration, [chatKryo], trackers, nodePort, keys)
+	}
+	
+	override getOriginalState() {
+		return new ChatState(new Stack(), new HashMap())
 	}
 
 	override onSynchronised() {

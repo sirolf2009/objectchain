@@ -56,6 +56,8 @@ class TestChat {
 		Thread.sleep(10000)
 
 		miner.get().printBlockChain()
+		miner.get().printState()
+		node1.get().printState()
 		
 		tracker.get().close()
 		node1.get().close()

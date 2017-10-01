@@ -36,7 +36,7 @@ class BlockChain {
 	
 	def branchOff(Kryo kryo, Block block) {
 		val branchRoot = mainBranch.blocks.findLast[hash(kryo).equals(block.header.previousBlock)]
-		sideBranches.add(new Branch(branchRoot, new ArrayList(Arrays.asList(branchRoot, block))))
+		sideBranches.add(new Branch(branchRoot, new ArrayList(Arrays.asList(branchRoot, block)), new ArrayList()))
 	}
 	
 	def totalBranchLength(Branch branch) {
@@ -48,7 +48,7 @@ class BlockChain {
 	}
 
 	def promoteBranch(Branch branch) {
-		val newSideBranch = new Branch(branch.root, mainBranch.blocks.subList(mainBranch.blocks.indexOf(branch.root), mainBranch.size()).clone)
+		val newSideBranch = new Branch(branch.root, mainBranch.blocks.subList(mainBranch.blocks.indexOf(branch.root), mainBranch.size()).clone, new ArrayList())
 		sideBranches.remove(branch)
 		sideBranches.add(newSideBranch)
 		mainBranch.blocks.removeAll(newSideBranch.blocks)

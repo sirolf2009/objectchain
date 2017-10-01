@@ -1,12 +1,15 @@
 package com.sirolf2009.objectchain.example.miner
 
 import com.sirolf2009.objectchain.common.crypto.Keys
+import com.sirolf2009.objectchain.example.common.model.ChatConfiguration
 import com.sirolf2009.objectchain.example.node.ChatNode
+import com.sirolf2009.objectchain.mining.model.Miner
 import java.security.KeyPair
 import java.util.List
-import org.objectchain.mining.model.Miner
 import org.slf4j.Logger
-import com.sirolf2009.objectchain.example.common.model.ChatConfiguration
+import com.sirolf2009.objectchain.example.common.model.ChatState
+import java.util.Stack
+import java.util.HashMap
 
 class ChatMiner extends Miner {
 	
@@ -16,6 +19,10 @@ class ChatMiner extends Miner {
 	
 	new(Logger logger, List<String> trackers, int nodePort, KeyPair keys) {
 		super(logger, new ChatConfiguration(), [ChatNode.chatKryo], trackers, nodePort, keys)
+	}
+	
+	override getOriginalState() {
+		return new ChatState(new Stack(), new HashMap())
 	}
 
 	def static void main(String[] args) {

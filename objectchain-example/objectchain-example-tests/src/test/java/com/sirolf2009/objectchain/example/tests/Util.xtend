@@ -5,8 +5,15 @@ import com.sirolf2009.objectchain.example.common.model.Message
 import com.sirolf2009.objectchain.example.node.ChatNode
 import com.sirolf2009.objectchain.node.Node
 import java.util.concurrent.atomic.AtomicReference
+import com.sirolf2009.objectchain.example.common.model.ChatState
 
 class Util {
+	
+	def static printState(Node node) {
+		println("####################STATE####################")
+		val state = node.blockchain.mainBranch.lastState as ChatState
+		println(state.chat.join("\n"))
+	}
 	
 	def static printBlockChain(AtomicReference<ChatNode> node) {
 		node.get().printBlockChain()

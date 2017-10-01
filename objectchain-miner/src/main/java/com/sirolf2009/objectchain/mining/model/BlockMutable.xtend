@@ -1,4 +1,4 @@
-package org.objectchain.mining.model
+package com.sirolf2009.objectchain.mining.model
 
 import com.esotericsoftware.kryo.Kryo
 import com.sirolf2009.objectchain.common.interfaces.IBlock

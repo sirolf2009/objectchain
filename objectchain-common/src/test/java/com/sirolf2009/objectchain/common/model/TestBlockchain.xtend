@@ -18,7 +18,7 @@ class TestBlockchain {
 		KryoRegistryCommon.register(kryo)
 		val blockchain = new BlockChain()
 		val genesis = new Block(new BlockHeader(newArrayOfSize(0), newArrayOfSize(0), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 0), new TreeSet())
-		blockchain.mainBranch = new Branch(genesis, new ArrayList(Arrays.asList(genesis)))
+		blockchain.mainBranch = new Branch(genesis, new ArrayList(Arrays.asList(genesis)), new ArrayList())
 		
 		val main1 = new Block(new BlockHeader(genesis.hash(kryo), newArrayOfSize(0), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 1), new TreeSet())
 		val main2 = new Block(new BlockHeader(main1.hash(kryo), newArrayOfSize(0), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 2), new TreeSet())
@@ -28,7 +28,7 @@ class TestBlockchain {
 		
 		val side1 = new Block(new BlockHeader(genesis.hash(kryo), newArrayOfSize(0), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 4), new TreeSet())
 		val side2 = new Block(new BlockHeader(side1.hash(kryo), newArrayOfSize(0), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 5), new TreeSet())
-		val branch = new Branch(genesis, new ArrayList(Arrays.asList(genesis, side1, side2)))
+		val branch = new Branch(genesis, new ArrayList(Arrays.asList(genesis, side1, side2)), new ArrayList())
 		blockchain.sideBranches.add(branch)
 		Assert.assertEquals(3, blockchain.totalBranchLength(branch))
 		Assert.assertFalse(blockchain.isBranchLonger(branch))

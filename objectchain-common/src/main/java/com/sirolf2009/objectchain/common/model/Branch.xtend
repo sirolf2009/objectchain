@@ -1,17 +1,19 @@
 package com.sirolf2009.objectchain.common.model
 
 import com.esotericsoftware.kryo.Kryo
+import com.sirolf2009.objectchain.common.exception.BlockVerificationException
+import com.sirolf2009.objectchain.common.exception.BranchExpansionException
+import com.sirolf2009.objectchain.common.exception.BranchVerificationException
+import com.sirolf2009.objectchain.common.interfaces.IState
+import java.math.BigInteger
 import java.util.List
 import org.eclipse.xtend.lib.annotations.Data
-import java.math.BigInteger
-import com.sirolf2009.objectchain.common.exception.BlockVerificationException
-import com.sirolf2009.objectchain.common.exception.BranchVerificationException
-import com.sirolf2009.objectchain.common.exception.BranchExpansionException
 
 @Data class Branch {
 
 	val Block root
 	val List<Block> blocks
+	val List<IState> states
 
 	def canExpandWith(Kryo kryo, Block block) {
 		return lastBlock.hash(kryo).equals(block.header.previousBlock)
@@ -21,6 +23,8 @@ import com.sirolf2009.objectchain.common.exception.BranchExpansionException
 		try {
 			blocks.add(block)
 			verify(kryo, configuration)
+			states.add(states.get(states.size()-1).apply(block))
+			println(lastState)
 		} catch(Exception e) {
 			blocks.remove(block)
 			throw new BranchExpansionException(this, block, "Failed to add block to the chain", e)
@@ -92,6 +96,14 @@ import com.sirolf2009.objectchain.common.exception.BranchExpansionException
 
 	def getLastBlock() {
 		return blocks.get(blocks.size() - 1)
+	}
+
+	def getPreviousState(IState state) {
+		return states.get(states.indexOf(state) - 1)
+	}
+
+	def getLastState() {
+		return states.get(states.size() - 1)
 	}
 
 	def size() {

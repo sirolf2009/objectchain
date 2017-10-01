@@ -3,17 +3,15 @@ package com.sirolf2009.objectchain.mining.model
 import com.esotericsoftware.kryo.Kryo
 import com.sirolf2009.objectchain.common.crypto.Keys
 import com.sirolf2009.objectchain.common.model.Configuration
+import com.sirolf2009.objectchain.common.model.Mutation
 import com.sirolf2009.objectchain.network.KryoRegistrationNode
 import java.math.BigInteger
 import java.time.Duration
 import java.util.TreeSet
 import junit.framework.Assert
 import org.junit.Test
-import org.objectchain.mining.model.BlockHeaderMutable
-import org.objectchain.mining.model.BlockMutable
 
 import static extension com.sirolf2009.objectchain.common.crypto.Hashing.*
-import com.sirolf2009.objectchain.common.model.Mutation
 
 class TestBlockMutable {
 	
