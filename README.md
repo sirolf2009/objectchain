@@ -13,6 +13,12 @@ A rule would be something like, if Alice submits a Transaction
 
 Note that while I've given a Bitcoin example, this system is not limited to cryptocurrencies. If you would like to make, for instance, a file sharing system then that would still be possible. The models and rules would simply need to be defined differently.
 
+## Documentation
+
+I personally don't believe in documentation. If the code isn't self-explanatory, I'd rather have you open an issue, describing the piece of code that you can't understand and I'll see about re-writing it.
+
+In this spirit, I do include an example project, which represents a simple chat room built on the objectchain. You can find it [here](https://github.com/sirolf2009/objectchain/tree/master/objectchain-example) and it would be the best place for you to start learning. If this scares you, don't be scared. It only consists of 4 classes that actually do anything (and 2 of those just call a constructor), plus a bunch of model classes.
+
 ## Dependencies
 
 This framework only has two dependencies. Namely https://github.com/EsotericSoftware/kryo and https://github.com/EsotericSoftware/kryonet.
