@@ -18,6 +18,7 @@ import java.util.concurrent.atomic.AtomicReference
 import org.junit.Assert
 import org.junit.Test
 import org.slf4j.LoggerFactory
+import com.sirolf2009.objectchain.example.common.model.ChatConfiguration
 
 class TestNewBlock {
 	
@@ -26,7 +27,7 @@ class TestNewBlock {
 		val AtomicReference<ChatTracker> tracker = new AtomicReference()
 		val AtomicReference<ChatNode> node1 = new AtomicReference()
 		val AtomicReference<ChatNode> node2 = new AtomicReference()
-		val config = new Configuration(8, Duration.ofMinutes(1), 512, 512, new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16))
+		val config = new Configuration(8, Duration.ofMinutes(1), 512, 512, new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), new ChatConfiguration().genesisState)
 		new Thread([
 			new ChatTracker(2012) => [
 				tracker.set(it)

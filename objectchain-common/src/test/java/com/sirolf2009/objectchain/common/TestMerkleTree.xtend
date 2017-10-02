@@ -16,7 +16,7 @@ class TestMerkleTree {
 	@Test
 	def void testMutations() {
 		val kryo = new Kryo()
-		KryoRegistryCommon.register(kryo)
+		KryoRegistryCommon.register(kryo, null)
 		val keys = Keys.generateAssymetricPair()
 		val mutation1 = new Mutation("Hello World! 1", keys)
 		val mutation2 = new Mutation("Hello World! 2", keys)

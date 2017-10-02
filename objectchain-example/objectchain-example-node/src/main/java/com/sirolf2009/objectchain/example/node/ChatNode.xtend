@@ -9,11 +9,8 @@ import com.sirolf2009.objectchain.example.common.model.ClaimUsername
 import com.sirolf2009.objectchain.example.common.model.Message
 import com.sirolf2009.objectchain.node.Node
 import java.security.KeyPair
-import java.util.ArrayList
-import java.util.HashMap
 import java.util.List
 import java.util.Scanner
-import java.util.Stack
 import org.slf4j.Logger
 
 class ChatNode extends Node {
@@ -30,11 +27,6 @@ class ChatNode extends Node {
 		super(logger, configuration, [chatKryo], trackers, nodePort, keys)
 	}
 	
-	/** The original state of the blockchain, or "genesis" state. In this case it features just some empty lists */
-	override getOriginalState() {
-		return new ChatState(new ArrayList(), new Stack(), new HashMap())
-	}
-
 	/** When we launch the application, we first synchronise to download any missing data. After sync we start running our chat */
 	override onSynchronised() {
 		new Thread [

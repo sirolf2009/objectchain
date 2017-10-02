@@ -19,7 +19,7 @@ class TestBlockMutable {
 	def void testMerkleTree() {
 		val keys = Keys.generateAssymetricPair()
 		val kryo = new Kryo()
-		KryoRegistrationNode.register(kryo)
+		KryoRegistrationNode.register(kryo, configuration)
 		
 		val blockMutable = new BlockMutable(new BlockHeaderMutable(#[1 as byte, 2 as byte, 3 as byte], BigInteger.TEN), new TreeSet())
 		Assert.assertNull(null, blockMutable.header.merkleRoot)
@@ -31,7 +31,7 @@ class TestBlockMutable {
 	def void testHashMutableImmutable() {
 		val keys = Keys.generateAssymetricPair()
 		val kryo = new Kryo()
-		KryoRegistrationNode.register(kryo)
+		KryoRegistrationNode.register(kryo, configuration)
 		
 		val blockMutable = new BlockMutable(new BlockHeaderMutable(#[1 as byte, 2 as byte, 3 as byte], BigInteger.TEN), new TreeSet())
 		blockMutable.addMutation(kryo, configuration, new Mutation("Hello World!", keys))
@@ -43,7 +43,7 @@ class TestBlockMutable {
 	}
 	
 	def configuration() {
-		return new Configuration(4, Duration.ofSeconds(1), 1, 1024, new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16))
+		return new Configuration(4, Duration.ofSeconds(1), 1, 1024, new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), new TestState(1))
 	}
 	
 }

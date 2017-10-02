@@ -15,7 +15,7 @@ class TestBlockchain {
 	@Test
 	def void testBranching() {
 		val kryo = new Kryo()
-		KryoRegistryCommon.register(kryo)
+		KryoRegistryCommon.register(kryo, null)
 		val blockchain = new BlockChain()
 		val genesis = new Block(new BlockHeader(newArrayOfSize(0), newArrayOfSize(0), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 0), new TreeSet())
 		blockchain.mainBranch = new Branch(genesis, new ArrayList(Arrays.asList(genesis)), new ArrayList())

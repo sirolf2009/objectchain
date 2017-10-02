@@ -28,7 +28,7 @@ class TestMining {
 		val keys = Keys.generateAssymetricPair()
 
 		val kryo = new Kryo()
-		KryoRegistrationNode.register(kryo)
+		KryoRegistrationNode.register(kryo, configuration)
 
 		val pendingBlock = new BlockMutable(new BlockHeaderMutable(genesis.header.hash(kryo), genesis.header.target), new TreeSet()) => [
 			header.time = new Date()
@@ -39,7 +39,7 @@ class TestMining {
 	}
 	
 	def configuration() {
-		return new Configuration(4, Duration.ofSeconds(1), 1, 1024, new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16))
+		return new Configuration(4, Duration.ofSeconds(1), 1, 1024, new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), new TestState(1))
 	}
 
 }

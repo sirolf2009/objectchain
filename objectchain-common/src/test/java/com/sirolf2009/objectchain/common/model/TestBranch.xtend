@@ -18,11 +18,11 @@ class TestBranch {
 	@Test
 	def void testExpansion() {
 		val kryo = new Kryo()
-		KryoRegistryCommon.register(kryo)
+		KryoRegistryCommon.register(kryo, null)
 		val keys = Keys.generateAssymetricPair()
 		val genesis = new Block(new BlockHeader(newArrayOfSize(0), newArrayOfSize(0), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 0), new TreeSet())
 		val branch = new Branch(genesis, new ArrayList(Arrays.asList(genesis)), new ArrayList(Arrays.asList(new TestState(1))))
-		val configuration = new Configuration(4, Duration.ofMillis(1), 10, 1024, new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16))
+		val configuration = new Configuration(4, Duration.ofMillis(1), 10, 1024, new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), new TestState(0))
 
 		val mutation1 = new Mutation("Hello World! 1", keys)
 		val mutation2 = new Mutation("Hello World! 2", keys)
@@ -47,7 +47,7 @@ class TestBranch {
 		Assert.assertEquals(BigInteger.valueOf(4), Branch.getNewTarget(currentTarget, 2016, blockDuration, retargetDuration))
 
 		val kryo = new Kryo()
-		KryoRegistryCommon.register(kryo)
+		KryoRegistryCommon.register(kryo, null)
 		val genesis = new Block(new BlockHeader(newArrayOfSize(0), newArrayOfSize(0), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 0), new TreeSet())
 		val branch = new Branch(genesis, new ArrayList(Arrays.asList(genesis)), new ArrayList())
 

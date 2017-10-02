@@ -14,7 +14,7 @@ class TestBlock {
 	@Test
 	def void testTarget() {
 		val kryo = new Kryo()
-		KryoRegistryCommon.register(kryo)
+		KryoRegistryCommon.register(kryo, null)
 		val msg = new Message() => [
 			msg = "Hello World"
 		]
