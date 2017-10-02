@@ -8,12 +8,13 @@ import com.sirolf2009.objectchain.common.model.Mutation
 import org.slf4j.LoggerFactory
 
 import static extension com.sirolf2009.objectchain.common.crypto.Hashing.toHexString
+import java.util.TreeSet
 
 class MerkleTree {
 	
 	static val log = LoggerFactory.getLogger(MerkleTree)
 	
-	def public static List<Byte> merkleTreeMutations(Kryo kryo, Iterable<Mutation> hashes) {
+	def public static List<Byte> merkleTreeMutations(Kryo kryo, TreeSet<Mutation> hashes) {
 		return merkleTree(hashes.map[hash(kryo)].toList())
 	}
 	

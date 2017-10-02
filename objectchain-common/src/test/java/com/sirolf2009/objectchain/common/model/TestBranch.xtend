@@ -2,6 +2,7 @@ package com.sirolf2009.objectchain.common.model
 
 import com.esotericsoftware.kryo.Kryo
 import com.sirolf2009.objectchain.common.KryoRegistryCommon
+import com.sirolf2009.objectchain.common.MerkleTree
 import com.sirolf2009.objectchain.common.crypto.Keys
 import java.math.BigInteger
 import java.time.Duration
@@ -9,9 +10,8 @@ import java.util.ArrayList
 import java.util.Arrays
 import java.util.Date
 import java.util.TreeSet
-import org.junit.Assert
 import org.junit.Test
-import com.sirolf2009.objectchain.common.MerkleTree
+import org.junit.Assert
 
 class TestBranch {
 
@@ -28,9 +28,9 @@ class TestBranch {
 		val mutation2 = new Mutation("Hello World! 2", keys)
 		val mutation3 = new Mutation("Hello World! 3", keys)
 
-		val block1 = new Block(new BlockHeader(genesis.hash(kryo), MerkleTree.merkleTreeMutations(kryo, #[mutation1]), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 1), new TreeSet(#[mutation1]))
-		val block2 = new Block(new BlockHeader(block1.hash(kryo), MerkleTree.merkleTreeMutations(kryo, #[mutation2]), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 2), new TreeSet(#[mutation2]))
-		val block3 = new Block(new BlockHeader(block2.hash(kryo), MerkleTree.merkleTreeMutations(kryo, #[mutation3]), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 3), new TreeSet(#[mutation3]))
+		val block1 = new Block(new BlockHeader(genesis.hash(kryo), MerkleTree.merkleTreeMutations(kryo, new TreeSet(#[mutation1])), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 1), new TreeSet(#[mutation1]))
+		val block2 = new Block(new BlockHeader(block1.hash(kryo), MerkleTree.merkleTreeMutations(kryo, new TreeSet(#[mutation2])), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 2), new TreeSet(#[mutation2]))
+		val block3 = new Block(new BlockHeader(block2.hash(kryo), MerkleTree.merkleTreeMutations(kryo, new TreeSet(#[mutation3])), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 3), new TreeSet(#[mutation3]))
 
 		branch.addBlock(kryo, configuration, block1)
 		branch.addBlock(kryo, configuration, block2)

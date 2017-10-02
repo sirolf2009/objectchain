@@ -27,6 +27,7 @@ import com.sirolf2009.objectchain.network.node.SyncResponse
 import com.sirolf2009.objectchain.network.tracker.TrackedNode
 import com.sirolf2009.objectchain.network.tracker.TrackerList
 import com.sirolf2009.objectchain.network.tracker.TrackerRequest
+import java.io.File
 import java.security.KeyPair
 import java.util.ArrayList
 import java.util.Arrays
@@ -41,12 +42,14 @@ import java.util.function.Supplier
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import com.sirolf2009.objectchain.common.BlockchainPersistence
 
 @Accessors
 abstract class Node implements AutoCloseable {
 
 	val Logger log
 	val Configuration configuration
+	val File saveFile
 	val KryoPool kryoPool
 	val List<String> trackers
 	val int nodePort
@@ -64,14 +67,18 @@ abstract class Node implements AutoCloseable {
 	}
 
 	new(Logger log, Configuration configuration, Supplier<Kryo> kryoSupplier, List<String> trackers, int nodePort, KeyPair keys) {
+		this(log, configuration, new File("data.obc"), kryoSupplier, trackers, nodePort, keys)
+	}
+
+	new(Logger log, Configuration configuration, File saveFile, Supplier<Kryo> kryoSupplier, List<String> trackers, int nodePort, KeyPair keys) {
 		this.log = log
 		this.configuration = configuration
+		this.saveFile = saveFile
 		this.trackers = trackers
 		this.nodePort = nodePort
 		this.keys = keys
 		this.floatingMutations = new TreeSet()
 		this.clients = new ArrayList()
-		this.blockchain = new BlockChain()
 		val kryoFactory = new KryoFactory() {
 			override create() {
 				val kryo = kryoSupplier.get()
@@ -80,6 +87,11 @@ abstract class Node implements AutoCloseable {
 			}
 		}
 		kryoPool = new KryoPool.Builder(kryoFactory).softReferences().build()
+		if(saveFile.exists) {
+			blockchain = kryoPool.run[BlockchainPersistence.load(it, configuration, saveFile)]
+		} else {
+			this.blockchain = new BlockChain()
+		}
 	}
 
 	def start() {
@@ -87,9 +99,13 @@ abstract class Node implements AutoCloseable {
 		log.info("Received {} peers", peers.size())
 		if(peers.size() == 0) {
 			synchronised = true
-			log.info("No peers found, creating genesis block")
-			val genesis = new Block(new BlockHeader(newArrayOfSize(0), newArrayOfSize(0), new Date(), configuration.initialTarget, 0), new TreeSet())
-			blockchain.mainBranch = new Branch(genesis, new ArrayList(Arrays.asList(genesis)), new ArrayList(Arrays.asList(configuration.genesisState)))
+			if(blockchain.mainBranch === null || blockchain.mainBranch.size() == 0) {
+				log.warn("No peers found, creating genesis block")
+				val genesis = new Block(new BlockHeader(newArrayOfSize(0), newArrayOfSize(0), new Date(), configuration.initialTarget, 0), new TreeSet())
+				blockchain.mainBranch = new Branch(genesis, new ArrayList(Arrays.asList(genesis)), new ArrayList(Arrays.asList(configuration.genesisState)))
+			} else {
+				log.warn("No peers found, nothing to synchronise")
+			}
 			onSynchronised()
 		} else {
 			peers.forEach[connectToNode(it)]
@@ -410,6 +426,13 @@ abstract class Node implements AutoCloseable {
 
 		client.connect(5000, tracker, 2012)
 		return queue.take()
+	}
+
+	def save() {
+		kryoPool.run [ kryo |
+			BlockchainPersistence.save(kryo, blockchain, saveFile)
+			null
+		]
 	}
 
 	override close() throws Exception {

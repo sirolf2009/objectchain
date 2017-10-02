@@ -8,8 +8,9 @@ import com.sirolf2009.objectchain.common.interfaces.IState
 import java.math.BigInteger
 import java.util.List
 import org.eclipse.xtend.lib.annotations.Data
+import com.sirolf2009.objectchain.common.interfaces.IHashable
 
-@Data class Branch {
+@Data class Branch implements IHashable {
 
 	val Block root
 	val List<Block> blocks
@@ -17,6 +18,18 @@ import org.eclipse.xtend.lib.annotations.Data
 
 	def canExpandWith(Kryo kryo, Block block) {
 		return lastBlock.hash(kryo).equals(block.header.previousBlock)
+	}
+	
+	def calculateStates() {
+		calculateStates(states.get(0))
+	}
+	
+	def calculateStates(IState original) {
+		states.clear()
+		states.add(original)
+		blocks.forEach[
+			states.add(lastState.apply(it))
+		]
 	}
 
 	def addBlock(Kryo kryo, Configuration configuration, Block block) {

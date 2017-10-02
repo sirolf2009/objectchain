@@ -3,8 +3,9 @@ package com.sirolf2009.objectchain.common.interfaces
 import com.esotericsoftware.kryo.Kryo
 import com.esotericsoftware.kryo.io.Output
 
-import static extension com.sirolf2009.objectchain.common.crypto.Hashing.*
 import java.io.ByteArrayOutputStream
+
+import static extension com.sirolf2009.objectchain.common.crypto.Hashing.*
 
 interface IHashable {
 	

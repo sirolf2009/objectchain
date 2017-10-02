@@ -23,17 +23,15 @@ class TestMerkleTree {
 		
 		val mutation1Hash = mutation1.hash(kryo)
 		
-		Assert.assertEquals(mutation1Hash, MerkleTree.merkleTreeMutations(kryo, #[mutation1]))
-		new TreeSet(#[mutation1])
-		Assert.assertEquals(mutation1Hash, MerkleTree.merkleTreeMutations(kryo, #[mutation1]))
+		Assert.assertEquals(mutation1Hash, MerkleTree.merkleTreeMutations(kryo, new TreeSet(#[mutation1])))
+		Assert.assertEquals(mutation1Hash, MerkleTree.merkleTreeMutations(kryo, new TreeSet(#[mutation1])))
 		
-		Assert.assertEquals(MerkleTree.merkleTreeMutations(kryo, new TreeSet(#[mutation1])), MerkleTree.merkleTreeMutations(kryo, #[mutation1]))
 		Assert.assertEquals(MerkleTree.merkleTreeMutations(kryo, new TreeSet(#[mutation1])), MerkleTree.merkleTreeMutations(kryo, new TreeSet(#[mutation1])))
 		Assert.assertEquals(MerkleTree.merkleTreeMutations(kryo, new TreeSet(#[mutation1, mutation2])), MerkleTree.merkleTreeMutations(kryo, new TreeSet(#[mutation2, mutation1])))
-		Assert.assertEquals(mutation1Hash, MerkleTree.merkleTreeMutations(kryo, #[mutation1]))
+		Assert.assertEquals(mutation1Hash, MerkleTree.merkleTreeMutations(kryo, new TreeSet(#[mutation1])))
 		
 		val genesis = new Block(new BlockHeader(newArrayOfSize(0), newArrayOfSize(0), new Date(), BigInteger.ONE, 0), new TreeSet())
-		val block = new Block(new BlockHeader(genesis.hash(kryo), MerkleTree.merkleTreeMutations(kryo, #[mutation1]), new Date(), BigInteger.ONE, 1), new TreeSet(#[mutation1]))
+		val block = new Block(new BlockHeader(genesis.hash(kryo), MerkleTree.merkleTreeMutations(kryo, new TreeSet(#[mutation1])), new Date(), BigInteger.ONE, 1), new TreeSet(#[mutation1]))
 		Assert.assertEquals(mutation1Hash, block.header.merkleRoot)
 	}
 

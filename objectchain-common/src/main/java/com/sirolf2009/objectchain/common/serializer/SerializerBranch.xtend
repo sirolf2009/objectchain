@@ -17,15 +17,12 @@ import org.eclipse.xtend.lib.annotations.Data
 	
 	override read(Kryo kryo, Input input, Class<Branch> type) {
 		val blocks = kryo.readObject(input, typeof(Block[]))
-		val branch = new Branch(blocks.get(0), new ArrayList(Arrays.asList(blocks.get(0))), new ArrayList(Arrays.asList(configuration.genesisState)))
-		blocks.stream.skip(1).forEach[
-			branch.add(kryo, configuration, it)
-		]
+		val branch = new Branch(blocks.get(0), new ArrayList(Arrays.asList(blocks)), new ArrayList(Arrays.asList(configuration.genesisState)))
 		return branch
 	}
 	
 	override write(Kryo kryo, Output output, Branch object) {
-		kryo.writeObject(output, object.blocks.toArray(newArrayList(object.blocks.size())))
+		kryo.writeObject(output, object.blocks.toArray(newArrayOfSize(object.blocks.size())))
 	}
 	
 }

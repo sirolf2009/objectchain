@@ -18,6 +18,7 @@ import java.util.Date
 class KryoRegistryCommon {
 
 	def static register(Kryo it, Configuration configuration) {
+		register(String)
 		register(Date)
 		register(BigInteger)
 		register(typeof(Byte[]))
