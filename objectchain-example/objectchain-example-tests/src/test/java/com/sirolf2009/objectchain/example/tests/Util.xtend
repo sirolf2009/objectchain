@@ -58,21 +58,21 @@ class Util {
 		Thread.sleep(timeout)
 	}
 
-	def close(ChatTracker tracker) {
+	def static closeSafe(ChatTracker tracker) {
 		try {
 			tracker.close()
 		} catch(Exception e) {
 		}
 	}
 
-	def close(ChatNode node) {
+	def static closeSafe(ChatNode node) {
 		try {
 			node.close()
 		} catch(Exception e) {
 		}
 	}
 
-	def close(ChatMiner miner) {
+	def static closeSafe(ChatMiner miner) {
 		try {
 			miner.close()
 		} catch(Exception e) {

@@ -64,10 +64,10 @@ class TestChat {
 
 	@After
 	def void cleanup() {
-		tracker.get()?.close()
-		node1.get()?.close()
-		node2.get()?.close()
-		miner.get()?.close()
+		tracker.get()?.closeSafe()
+		node1.get()?.closeSafe()
+		node2.get()?.closeSafe()
+		miner.get()?.closeSafe()
 		Thread.sleep(1000) // allow for connections to close
 	}
 

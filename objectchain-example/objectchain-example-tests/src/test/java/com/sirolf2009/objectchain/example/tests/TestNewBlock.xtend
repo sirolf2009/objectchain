@@ -6,6 +6,7 @@ import com.sirolf2009.objectchain.common.model.Block
 import com.sirolf2009.objectchain.common.model.BlockHeader
 import com.sirolf2009.objectchain.common.model.Configuration
 import com.sirolf2009.objectchain.common.model.Mutation
+import com.sirolf2009.objectchain.example.common.model.ChatConfiguration
 import com.sirolf2009.objectchain.example.common.model.Message
 import com.sirolf2009.objectchain.example.node.ChatNode
 import com.sirolf2009.objectchain.example.tracker.ChatTracker
@@ -15,11 +16,12 @@ import java.time.Duration
 import java.util.Date
 import java.util.TreeSet
 import java.util.concurrent.atomic.AtomicReference
+import org.junit.After
 import org.junit.Assert
 import org.junit.Test
 import org.slf4j.LoggerFactory
-import com.sirolf2009.objectchain.example.common.model.ChatConfiguration
-import org.junit.After
+
+import static extension com.sirolf2009.objectchain.example.tests.Util.*
 
 class TestNewBlock {
 
@@ -73,9 +75,9 @@ class TestNewBlock {
 
 	@After
 	def void cleanup() {
-		tracker.get()?.close()
-		node1.get()?.close()
-		node2.get()?.close()
+		tracker.get()?.closeSafe()
+		node1.get()?.closeSafe()
+		node2.get()?.closeSafe()
 		Thread.sleep(1000) // allow for connections to close
 	}
 
