@@ -1,11 +1,13 @@
 package com.sirolf2009.objectchain.example.tests
 
+import com.sirolf2009.objectchain.example.common.model.ChatState
 import com.sirolf2009.objectchain.example.common.model.ClaimUsername
 import com.sirolf2009.objectchain.example.common.model.Message
 import com.sirolf2009.objectchain.example.node.ChatNode
+import com.sirolf2009.objectchain.example.tracker.ChatTracker
 import com.sirolf2009.objectchain.node.Node
 import java.util.concurrent.atomic.AtomicReference
-import com.sirolf2009.objectchain.example.common.model.ChatState
+import com.sirolf2009.objectchain.example.miner.ChatMiner
 
 class Util {
 	
@@ -54,6 +56,27 @@ class Util {
 			username = user
 		])
 		Thread.sleep(timeout)
+	}
+
+	def close(ChatTracker tracker) {
+		try {
+			tracker.close()
+		} catch(Exception e) {
+		}
+	}
+
+	def close(ChatNode node) {
+		try {
+			node.close()
+		} catch(Exception e) {
+		}
+	}
+
+	def close(ChatMiner miner) {
+		try {
+			miner.close()
+		} catch(Exception e) {
+		}
 	}
 	
 }

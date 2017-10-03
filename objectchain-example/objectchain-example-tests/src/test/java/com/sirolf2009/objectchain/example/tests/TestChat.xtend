@@ -5,6 +5,7 @@ import com.sirolf2009.objectchain.example.miner.ChatMiner
 import com.sirolf2009.objectchain.example.node.ChatNode
 import com.sirolf2009.objectchain.example.tracker.ChatTracker
 import java.util.concurrent.atomic.AtomicReference
+import org.junit.After
 import org.junit.Test
 import org.slf4j.LoggerFactory
 
@@ -12,12 +13,13 @@ import static extension com.sirolf2009.objectchain.example.tests.Util.*
 
 class TestChat {
 
+	val AtomicReference<ChatTracker> tracker = new AtomicReference()
+	val AtomicReference<ChatNode> node1 = new AtomicReference()
+	val AtomicReference<ChatNode> node2 = new AtomicReference()
+	val AtomicReference<ChatMiner> miner = new AtomicReference()
+
 	@Test
 	def void test() {
-		val AtomicReference<ChatTracker> tracker = new AtomicReference()
-		val AtomicReference<ChatNode> node1 = new AtomicReference()
-		val AtomicReference<ChatNode> node2 = new AtomicReference()
-		val AtomicReference<ChatMiner> miner = new AtomicReference()
 		new Thread([
 			new ChatTracker(2012) => [
 				tracker.set(it)
@@ -58,12 +60,15 @@ class TestChat {
 		miner.get().printBlockChain()
 		miner.get().printState()
 		node1.get().printState()
-		
-		tracker.get().close()
-		node1.get().close()
-		node2.get().close()
-		miner.get().close()
-		Thread.sleep(1000) //allow for connections to close
+	}
+
+	@After
+	def void cleanup() {
+		tracker.get()?.close()
+		node1.get()?.close()
+		node2.get()?.close()
+		miner.get()?.close()
+		Thread.sleep(1000) // allow for connections to close
 	}
 
 }
