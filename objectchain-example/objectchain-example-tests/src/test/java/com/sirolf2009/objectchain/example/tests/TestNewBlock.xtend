@@ -12,6 +12,7 @@ import com.sirolf2009.objectchain.example.node.ChatNode
 import com.sirolf2009.objectchain.example.tracker.ChatTracker
 import com.sirolf2009.objectchain.network.node.NewBlock
 import java.math.BigInteger
+import java.net.InetSocketAddress
 import java.time.Duration
 import java.util.Date
 import java.util.TreeSet
@@ -40,14 +41,14 @@ class TestNewBlock {
 		], "Tracker").start()
 		Thread.sleep(1000)
 		new Thread([
-			new ChatNode(LoggerFactory.getLogger("node1"), config, #["localhost"], 4567, Keys.generateAssymetricPair()) => [
+			new ChatNode(LoggerFactory.getLogger("node1"), config, #[new InetSocketAddress("localhost", 2012)], 4567, Keys.generateAssymetricPair()) => [
 				node1.set(it)
 				start()
 			]
 		], "Node1").start()
 		Thread.sleep(1000)
 		new Thread([
-			new ChatNode(LoggerFactory.getLogger("node2"), config, #["localhost"], 4568, Keys.generateAssymetricPair()) => [
+			new ChatNode(LoggerFactory.getLogger("node2"), config, #[new InetSocketAddress("localhost", 2012)], 4568, Keys.generateAssymetricPair()) => [
 				node2.set(it)
 				start()
 			]

@@ -13,17 +13,18 @@ import java.util.TreeSet
 import java.util.function.Supplier
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.net.InetSocketAddress
 
 abstract class Miner extends Node {
 
 	val log = LoggerFactory.getLogger(Miner)
 	var BlockMutable pendingBlock
 
-	new(Configuration configuration, Supplier<Kryo> kryoSupplier, List<String> trackers, int nodePort, KeyPair keys) {
+	new(Configuration configuration, Supplier<Kryo> kryoSupplier, List<InetSocketAddress> trackers, int nodePort, KeyPair keys) {
 		super(configuration, kryoSupplier, trackers, nodePort, keys)
 	}
 
-	new(Logger logger, Configuration configuration, Supplier<Kryo> kryoSupplier, List<String> trackers, int nodePort, KeyPair keys) {
+	new(Logger logger, Configuration configuration, Supplier<Kryo> kryoSupplier, List<InetSocketAddress> trackers, int nodePort, KeyPair keys) {
 		super(logger, configuration, kryoSupplier, trackers, nodePort, keys)
 	}
 

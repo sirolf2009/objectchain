@@ -7,14 +7,15 @@ import com.sirolf2009.objectchain.mining.model.Miner
 import java.security.KeyPair
 import java.util.List
 import org.slf4j.Logger
+import java.net.InetSocketAddress
 
 class ChatMiner extends Miner {
 	
-	new(List<String> trackers, int nodePort, KeyPair keys) {
+	new(List<InetSocketAddress> trackers, int nodePort, KeyPair keys) {
 		super(new ChatConfiguration(), [ChatNode.chatKryo], trackers, nodePort, keys)
 	}
 	
-	new(Logger logger, List<String> trackers, int nodePort, KeyPair keys) {
+	new(Logger logger, List<InetSocketAddress> trackers, int nodePort, KeyPair keys) {
 		super(logger, new ChatConfiguration(), [ChatNode.chatKryo], trackers, nodePort, keys)
 	}
 	
@@ -27,7 +28,7 @@ class ChatMiner extends Miner {
 			}
 		}
 		// trackers are hardcoded in your application, they provide the initial list of peers when a node joins the network
-		new ChatMiner(#["localhost"], port, Keys.generateAssymetricPair()).start()
+		new ChatMiner(#[new InetSocketAddress("localhost", 2012)], port, Keys.generateAssymetricPair()).start()
 	}
 	
 }

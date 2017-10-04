@@ -4,6 +4,7 @@ import com.sirolf2009.objectchain.common.crypto.Keys
 import com.sirolf2009.objectchain.example.miner.ChatMiner
 import com.sirolf2009.objectchain.example.node.ChatNode
 import com.sirolf2009.objectchain.example.tracker.ChatTracker
+import java.net.InetSocketAddress
 import java.util.concurrent.atomic.AtomicReference
 import org.junit.After
 import org.junit.Test
@@ -28,21 +29,21 @@ class TestChat {
 		], "Tracker").start()
 		Thread.sleep(1000)
 		new Thread([
-			new ChatNode(LoggerFactory.getLogger("node1"), #["localhost"], 4567, Keys.generateAssymetricPair()) => [
+			new ChatNode(LoggerFactory.getLogger("node1"), #[new InetSocketAddress("localhost", 2012)], 4567, Keys.generateAssymetricPair()) => [
 				node1.set(it)
 				start()
 			]
 		], "Node1").start()
 		Thread.sleep(1000)
 		new Thread([
-			new ChatNode(LoggerFactory.getLogger("node2"), #["localhost"], 4568, Keys.generateAssymetricPair()) => [
+			new ChatNode(LoggerFactory.getLogger("node2"), #[new InetSocketAddress("localhost", 2012)], 4568, Keys.generateAssymetricPair()) => [
 				node2.set(it)
 				start()
 			]
 		], "Node2").start()
 		Thread.sleep(1000)
 		new Thread([
-			new ChatMiner(LoggerFactory.getLogger("miner"), #["localhost"], 4569, Keys.generateAssymetricPair()) => [
+			new ChatMiner(LoggerFactory.getLogger("miner"), #[new InetSocketAddress("localhost", 2012)], 4569, Keys.generateAssymetricPair()) => [
 				miner.set(it)
 				start()
 			]
