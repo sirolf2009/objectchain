@@ -43,6 +43,7 @@ import org.eclipse.xtend.lib.annotations.Accessors
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import com.sirolf2009.objectchain.common.BlockchainPersistence
+import java.net.InetSocketAddress
 
 @Accessors
 abstract class Node implements AutoCloseable {
@@ -51,7 +52,7 @@ abstract class Node implements AutoCloseable {
 	val Configuration configuration
 	val File saveFile
 	val KryoPool kryoPool
-	val List<String> trackers
+	val List<InetSocketAddress> trackers
 	val int nodePort
 	val KeyPair keys
 
@@ -62,15 +63,15 @@ abstract class Node implements AutoCloseable {
 	val BlockChain blockchain
 	val Set<Mutation> floatingMutations
 
-	new(Configuration configuration, Supplier<Kryo> kryoSupplier, List<String> trackers, int nodePort, KeyPair keys) {
+	new(Configuration configuration, Supplier<Kryo> kryoSupplier, List<InetSocketAddress> trackers, int nodePort, KeyPair keys) {
 		this(LoggerFactory.getLogger(Node), configuration, kryoSupplier, trackers, nodePort, keys)
 	}
 
-	new(Logger log, Configuration configuration, Supplier<Kryo> kryoSupplier, List<String> trackers, int nodePort, KeyPair keys) {
+	new(Logger log, Configuration configuration, Supplier<Kryo> kryoSupplier, List<InetSocketAddress> trackers, int nodePort, KeyPair keys) {
 		this(log, configuration, new File("data.obc"), kryoSupplier, trackers, nodePort, keys)
 	}
 
-	new(Logger log, Configuration configuration, File saveFile, Supplier<Kryo> kryoSupplier, List<String> trackers, int nodePort, KeyPair keys) {
+	new(Logger log, Configuration configuration, File saveFile, Supplier<Kryo> kryoSupplier, List<InetSocketAddress> trackers, int nodePort, KeyPair keys) {
 		this.log = log
 		this.configuration = configuration
 		this.saveFile = saveFile
@@ -394,7 +395,7 @@ abstract class Node implements AutoCloseable {
 		return trackers.map[getTrackedNodes(it)].map[tracked].flatten.filter[!it.host.equals("localhost") && !it.port.equals(nodePort)].toSet()
 	}
 
-	def getTrackedNodes(String tracker) {
+	def getTrackedNodes(InetSocketAddress tracker) {
 		log.info("Connecting to tracker {}", tracker)
 		val queue = new ArrayBlockingQueue<TrackerList>(1)
 		val client = new Client()
@@ -424,7 +425,7 @@ abstract class Node implements AutoCloseable {
 
 		})
 
-		client.connect(5000, tracker, 2012)
+		client.connect(5000, tracker.address.hostAddress, tracker.port)
 		return queue.take()
 	}
 

@@ -12,18 +12,19 @@ import java.security.KeyPair
 import java.util.List
 import java.util.Scanner
 import org.slf4j.Logger
+import java.net.InetSocketAddress
 
 class ChatNode extends Node {
 
-	new(List<String> trackers, int nodePort, KeyPair keys) {
+	new(List<InetSocketAddress> trackers, int nodePort, KeyPair keys) {
 		super(new ChatConfiguration(), [chatKryo], trackers, nodePort, keys)
 	}
 
-	new(Logger logger, List<String> trackers, int nodePort, KeyPair keys) {
+	new(Logger logger, List<InetSocketAddress> trackers, int nodePort, KeyPair keys) {
 		super(logger, new ChatConfiguration(), [chatKryo], trackers, nodePort, keys)
 	}
 
-	new(Logger logger, Configuration configuration, List<String> trackers, int nodePort, KeyPair keys) {
+	new(Logger logger, Configuration configuration, List<InetSocketAddress> trackers, int nodePort, KeyPair keys) {
 		super(logger, configuration, [chatKryo], trackers, nodePort, keys)
 	}
 	
@@ -88,7 +89,7 @@ class ChatNode extends Node {
 			}
 		}
 		// trackers are hardcoded in your application, they provide the initial list of peers when a node joins the network
-		new ChatNode(#["localhost"], port, Keys.generateAssymetricPair()).start()
+		new ChatNode(#[new InetSocketAddress("localhost", 2012)], port, Keys.generateAssymetricPair()).start()
 	}
 
 }
