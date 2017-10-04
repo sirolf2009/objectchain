@@ -4,15 +4,17 @@ import com.esotericsoftware.kryo.Kryo
 import com.esotericsoftware.kryo.io.Input
 import com.esotericsoftware.kryo.io.Output
 import com.sirolf2009.objectchain.common.model.BlockChain
+import com.sirolf2009.objectchain.common.model.Configuration
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
-import com.sirolf2009.objectchain.common.model.Configuration
+import java.util.zip.GZIPInputStream
+import java.util.zip.GZIPOutputStream
 
 class BlockchainPersistence {
 
 	def static save(Kryo kryo, BlockChain blockchain, File file) {
-		val out = new FileOutputStream(file)
+		val out = new GZIPOutputStream(new FileOutputStream(file))
 		val output = new Output(out)
 		kryo.writeObject(output, blockchain)
 		output.close() 
@@ -20,7 +22,7 @@ class BlockchainPersistence {
 	}
 	
 	def static load(Kryo kryo, Configuration configuration, File file) {
-		val in = new FileInputStream(file)
+		val in = new GZIPInputStream(new FileInputStream(file))
 		val input = new Input(in)
 		val blockchain = kryo.readObject(input, BlockChain)
 		input.close()
