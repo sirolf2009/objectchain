@@ -78,7 +78,7 @@ class TestNewBlock {
 		tracker.get()?.closeSafe()
 		node1.get()?.closeSafe()
 		node2.get()?.closeSafe()
-		Thread.sleep(1000) // allow for connections to close
+		Thread.sleep(4000) // allow for connections to close
 	}
 
 }

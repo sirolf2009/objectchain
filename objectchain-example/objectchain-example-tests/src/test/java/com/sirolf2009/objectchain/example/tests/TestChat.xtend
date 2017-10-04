@@ -68,7 +68,7 @@ class TestChat {
 		node1.get()?.closeSafe()
 		node2.get()?.closeSafe()
 		miner.get()?.closeSafe()
-		Thread.sleep(1000) // allow for connections to close
+		Thread.sleep(4000) // allow for connections to close
 	}
 
 }

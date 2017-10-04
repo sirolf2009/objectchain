@@ -54,9 +54,6 @@ class TestMiner {
 
 	@Test
 	def void testMultiple() {
-		val AtomicReference<ChatTracker> tracker = new AtomicReference()
-		val AtomicReference<ChatNode> node = new AtomicReference()
-		val AtomicReference<ChatMiner> miner = new AtomicReference()
 		new Thread([
 			new ChatTracker(2012) => [
 				tracker.set(it)
@@ -108,7 +105,7 @@ class TestMiner {
 		tracker.get()?.closeSafe()
 		node.get()?.closeSafe()
 		miner.get()?.closeSafe()
-		Thread.sleep(1000) // allow for connections to close
+		Thread.sleep(4000) // allow for connections to close
 	}
 
 }
