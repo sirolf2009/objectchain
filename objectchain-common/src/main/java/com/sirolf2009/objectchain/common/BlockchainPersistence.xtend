@@ -28,12 +28,12 @@ class BlockchainPersistence {
 		input.close()
 		in.close()
 		blockchain.verify(kryo, configuration)
-		blockchain.mainBranch.calculateStates()
+		blockchain.mainBranch.calculateStates(kryo)
 		blockchain.sideBranches.forEach[
 			val previousHash = blocks.get(0).header.previousBlock
 			val branchOff = blockchain.mainBranch.blocks.indexOf(blockchain.mainBranch.blocks.findFirst[hash(kryo).equals(previousHash)])
 			val state = blockchain.mainBranch.states.get(branchOff)
-			calculateStates(state)			
+			calculateStates(kryo, state)
 		]
 		return blockchain
 	}

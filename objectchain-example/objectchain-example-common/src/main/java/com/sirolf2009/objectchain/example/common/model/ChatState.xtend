@@ -1,5 +1,6 @@
 package com.sirolf2009.objectchain.example.common.model
 
+import com.esotericsoftware.kryo.Kryo
 import com.sirolf2009.objectchain.common.interfaces.IState
 import com.sirolf2009.objectchain.common.model.Block
 import java.security.PublicKey
@@ -18,7 +19,7 @@ import static extension com.sirolf2009.objectchain.common.crypto.Hashing.*
 	val Stack<String> chat
 	val Map<PublicKey, String> usernames
 	
-	override apply(Block block) {
+	override apply(Kryo kryo, Block block) {
 		val usernames = new HashMap()
 		usernames.putAll(this.usernames)
 		block.mutations.filter[object instanceof ClaimUsername].forEach[

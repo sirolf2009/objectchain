@@ -20,15 +20,15 @@ import com.sirolf2009.objectchain.common.interfaces.IHashable
 		return lastBlock.hash(kryo).equals(block.header.previousBlock)
 	}
 	
-	def calculateStates() {
-		calculateStates(states.get(0))
+	def calculateStates(Kryo kryo) {
+		calculateStates(kryo, states.get(0))
 	}
 	
-	def calculateStates(IState original) {
+	def calculateStates(Kryo kryo, IState original) {
 		states.clear()
 		states.add(original)
 		blocks.forEach[
-			states.add(lastState.apply(it))
+			states.add(lastState.apply(kryo, it))
 		]
 	}
 
@@ -36,7 +36,7 @@ import com.sirolf2009.objectchain.common.interfaces.IHashable
 		try {
 			blocks.add(block)
 			verify(kryo, configuration)
-			states.add(states.get(states.size() - 1).apply(block))
+			states.add(states.get(states.size() - 1).apply(kryo, block))
 		} catch(Exception e) {
 			blocks.remove(block)
 			throw new BranchExpansionException(this, block, "Failed to add block to the chain", e)
