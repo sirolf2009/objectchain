@@ -44,6 +44,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import com.sirolf2009.objectchain.common.BlockchainPersistence
 import java.net.InetSocketAddress
+import com.sirolf2009.objectchain.common.exception.MutationVerificationException
 
 @Accessors
 abstract class Node implements AutoCloseable {
@@ -218,10 +219,18 @@ abstract class Node implements AutoCloseable {
 			log.warn("{} send mutation {}, but it is not valid", connection, newMutation)
 			return
 		}
-		if(!newMutation.mutation.verifySignature()) {
-			log.warn("{} send mutation {}, but I could not verify the signature", connection, newMutation)
-			return
+		val verificationException = kryoPool.run [ kryo |
+			try {
+				newMutation.mutation.verify(kryo, configuration)
+				return null
+			} catch(MutationVerificationException e) {
+				return e
+			}
+		]
+		if(verificationException !== null) {
+			log.warn("{} send mutation {}, but it could not be verified", connection, newMutation, verificationException)
 		}
+		
 		if(addMutation(newMutation.getMutation)) {
 			onMutationReceived(newMutation.mutation)
 			log.info("propagating new mutation")
