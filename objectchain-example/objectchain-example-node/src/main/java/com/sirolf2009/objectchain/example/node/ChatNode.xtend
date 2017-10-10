@@ -13,6 +13,7 @@ import java.util.List
 import java.util.Scanner
 import org.slf4j.Logger
 import java.net.InetSocketAddress
+import com.sirolf2009.objectchain.common.model.Mutation
 
 class ChatNode extends Node {
 
@@ -58,6 +59,19 @@ class ChatNode extends Node {
 				}
 			}
 		].start()
+	}
+	
+	/**
+	 * This is called whenever a new mutation is broadcasted. We check if we consider it valid. If it is, it gets saved and propagated further to the network
+	 */
+	override isValid(Mutation mutation) {
+		//If someone claims a username, make sure it's not been claimed by someone else
+		if(mutation.object instanceof ClaimUsername) {
+			val claim = mutation.object as ClaimUsername
+			val state = blockchain.mainBranch.lastState as ChatState
+			return !state.usernames.values.contains(claim.username)
+		}
+		return true
 	}
 	
 	/**

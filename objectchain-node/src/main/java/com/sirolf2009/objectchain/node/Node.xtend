@@ -214,15 +214,23 @@ abstract class Node implements AutoCloseable {
 
 	def handleNewMutations(Connection connection, NewMutation newMutation) {
 		log.info("{} send new mutation", connection)
-		if(newMutation.getMutation.verifySignature()) {
-			if(addMutation(newMutation.getMutation)) {
-				onMutationReceived(newMutation.mutation)
-				log.info("propagating new mutation")
-				broadcast(newMutation, Optional.of(connection))
-			}
-		} else {
-			log.warn("{} send mutation {}, but I could not verify the signature!", connection, newMutation)
+		if(!isValid(newMutation.mutation)) {
+			log.warn("{} send mutation {}, but it is not valid", connection, newMutation)
+			return
 		}
+		if(!newMutation.mutation.verifySignature()) {
+			log.warn("{} send mutation {}, but I could not verify the signature", connection, newMutation)
+			return
+		}
+		if(addMutation(newMutation.getMutation)) {
+			onMutationReceived(newMutation.mutation)
+			log.info("propagating new mutation")
+			broadcast(newMutation, Optional.of(connection))
+		}
+	}
+
+	def boolean isValid(Mutation mutation) {
+		return true
 	}
 
 	def boolean addMutation(Mutation mutation) {
