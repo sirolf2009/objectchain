@@ -448,7 +448,10 @@ abstract class Node implements AutoCloseable {
 
 	def save() {
 		kryoPool.run [ kryo |
-			BlockchainPersistence.save(kryo, blockchain, saveFile)
+			val tmpFile = new File(saveFile.absolutePath+".tmp")
+			BlockchainPersistence.save(kryo, blockchain, tmpFile)
+			saveFile.delete()
+			tmpFile.renameTo(saveFile)
 			null
 		]
 	}
