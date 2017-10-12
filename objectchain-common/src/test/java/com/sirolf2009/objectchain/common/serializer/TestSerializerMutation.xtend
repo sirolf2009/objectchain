@@ -19,7 +19,7 @@ class TestSerializerMutation {
 		val kryo = new Kryo()
 		KryoRegistryCommon.register(kryo, null)
 		
-		val mutation = new Mutation("Hello World", Keys.generateAssymetricPair())
+		val mutation = new Mutation("Hello World", kryo, Keys.generateAssymetricPair())
 		
 		val outBuffer = new ByteArrayOutputStream()
 		val out = new Output(outBuffer)
@@ -35,8 +35,8 @@ class TestSerializerMutation {
 		KryoRegistryCommon.register(kryo, null)
 		val keys = Keys.generateAssymetricPair()
 		
-		val mutation1 = new Mutation("Hello World", keys)
-		val mutation2 = new Mutation("Hello World", keys)
+		val mutation1 = new Mutation("Hello World", kryo, keys)
+		val mutation2 = new Mutation("Hello World", kryo, keys)
 		
 		Assert.assertEquals(mutation1.getBytes(kryo).toHexString(), mutation2.getBytes(kryo).toHexString())
 	}

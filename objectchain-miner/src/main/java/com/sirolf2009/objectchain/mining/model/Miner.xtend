@@ -28,6 +28,7 @@ abstract class Miner extends Node {
 		super(logger, configuration, kryoSupplier, trackers, nodePort, keys)
 	}
 
+	//FIXME this isn't called when a miner joins an empty network
 	override onInitialized() {
 		new Thread([
 			kryoPool.run [ kryo |

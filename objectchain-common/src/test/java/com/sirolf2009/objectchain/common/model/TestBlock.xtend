@@ -20,7 +20,7 @@ class TestBlock {
 			msg = "Hello World"
 		]
 		val keys = Keys.generateAssymetricPair()
-		val mutation = new Mutation(msg, keys)
+		val mutation = new Mutation(msg, kryo, keys)
 
 		val easyTarget = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16)
 		Assert.assertTrue(new BlockHeader(#[], MerkleTree.merkleTreeMutations(kryo, new TreeSet(#[mutation])), new Date(), easyTarget, 0).isBelowTarget(kryo))

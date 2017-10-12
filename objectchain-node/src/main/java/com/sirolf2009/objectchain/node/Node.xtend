@@ -382,7 +382,7 @@ abstract class Node implements AutoCloseable {
 	}
 
 	def submitMutation(Object object) {
-		val messageMutation = new Mutation(object, keys)
+		val messageMutation = kryoPool.run[kryo| new Mutation(object, kryo, keys)]
 		floatingMutations.add(messageMutation)
 		broadcast(new NewMutation() => [
 			mutation = messageMutation

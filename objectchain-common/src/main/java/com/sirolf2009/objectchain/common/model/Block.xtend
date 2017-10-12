@@ -44,7 +44,8 @@ import static extension com.sirolf2009.objectchain.common.crypto.Hashing.*
 	}
 
 	def toString(Kryo kryo) {
-		return '''
+		return 
+		'''
 			Block «header.hash(kryo).toHexString()» [
 				version=«header.version»
 				prevBlock=«header.previousBlock.toHexString()»
@@ -53,9 +54,9 @@ import static extension com.sirolf2009.objectchain.common.crypto.Hashing.*
 				target=«header.target.toString(16)»
 				nonce=«header.nonce»
 				«mutations.size()» Mutations [
-				«FOR m : mutations.toList()»
-					«m.toString(kryo)»
-				«ENDFOR»
+					«FOR m : mutations.toList()»
+						«m.toString(kryo)»
+					«ENDFOR»
 				]
 			]
 		'''

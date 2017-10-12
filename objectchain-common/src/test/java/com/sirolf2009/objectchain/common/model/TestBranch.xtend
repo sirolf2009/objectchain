@@ -24,9 +24,9 @@ class TestBranch {
 		val branch = new Branch(genesis, new ArrayList(Arrays.asList(genesis)), new ArrayList(Arrays.asList(new TestState(1))))
 		val configuration = new Configuration(4, Duration.ofMillis(1), 10, 1024, new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), new TestState(0))
 
-		val mutation1 = new Mutation("Hello World! 1", keys)
-		val mutation2 = new Mutation("Hello World! 2", keys)
-		val mutation3 = new Mutation("Hello World! 3", keys)
+		val mutation1 = new Mutation("Hello World! 1", kryo, keys)
+		val mutation2 = new Mutation("Hello World! 2", kryo, keys)
+		val mutation3 = new Mutation("Hello World! 3", kryo, keys)
 
 		val block1 = new Block(new BlockHeader(genesis.hash(kryo), MerkleTree.merkleTreeMutations(kryo, new TreeSet(#[mutation1])), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 1), new TreeSet(#[mutation1]))
 		val block2 = new Block(new BlockHeader(block1.hash(kryo), MerkleTree.merkleTreeMutations(kryo, new TreeSet(#[mutation2])), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 2), new TreeSet(#[mutation2]))

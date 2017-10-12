@@ -33,7 +33,7 @@ class TestMining {
 		val pendingBlock = new BlockMutable(new BlockHeaderMutable(genesis.header.hash(kryo), genesis.header.target), new TreeSet()) => [
 			header.time = new Date()
 		]
-		pendingBlock.addMutation(kryo, configuration, new Mutation("Hello World!", keys))
+		pendingBlock.addMutation(kryo, configuration, new Mutation("Hello World!", kryo, keys))
 		Assert.assertTrue(pendingBlock.header.isBelowTarget(kryo))
 		branch.addBlock(kryo, configuration, pendingBlock.immutable())
 	}

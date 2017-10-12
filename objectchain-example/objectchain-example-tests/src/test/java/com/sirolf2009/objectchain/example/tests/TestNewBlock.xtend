@@ -55,14 +55,16 @@ class TestNewBlock {
 		], "Node2").start()
 		Thread.sleep(3000)
 
-		val mutations = new TreeSet(#[
-			new Mutation(new Message() => [
-				message = "Hello World"
-			], node1.get().keys),
-			new Mutation(new Message() => [
-				message = "Are you new here?"
-			], node1.get().keys)
-		])
+		val mutations = node1.get().kryoPool.run [kryo|
+			new TreeSet(#[
+				new Mutation(new Message() => [
+					message = "Hello World"
+				], kryo, node1.get().keys),
+				new Mutation(new Message() => [
+					message = "Are you new here?"
+				], kryo, node1.get().keys)
+			])
+		]
 
 		val newBlockHeader = node2.get().kryoPool.run[kryo|new BlockHeader(node2.get().blockchain.mainBranch.blocks.last.hash(kryo), MerkleTree.merkleTreeMutations(kryo, mutations), new Date(), node2.get().blockchain.mainBranch.lastBlock.header.target, 0)]
 		val newBlock = new Block(newBlockHeader, mutations)
@@ -70,7 +72,7 @@ class TestNewBlock {
 			it.block = newBlock
 		])
 		Thread.sleep(1000)
-		
+
 		Assert.assertEquals(node1.get().blockchain.mainBranch.blocks.size(), 2)
 	}
 

@@ -18,12 +18,12 @@ import com.sirolf2009.objectchain.common.exception.MutationVerificationException
 	val String signature
 	val PublicKey publicKey
 	
-	new(Object object, KeyPair keys) {
-		this(object, keys.private, keys.public)
+	new(Object object, Kryo kryo, KeyPair keys) {
+		this(object, kryo, keys.private, keys.public)
 	}
 	
-	new(Object object, PrivateKey privateKey, PublicKey publicKey) {
-		this(object, object.toString().sign(privateKey), publicKey)
+	new(Object object, Kryo kryo, PrivateKey privateKey, PublicKey publicKey) {
+		this(object, kryo.hash(object).toHexString().sign(privateKey), publicKey)
 	}
 	
 	new(Object object, String signature, PublicKey publicKey) {
@@ -33,7 +33,7 @@ import com.sirolf2009.objectchain.common.exception.MutationVerificationException
 	}
 	
 	def verify(Kryo kryo, Configuration configuration) throws MutationVerificationException {
-		if(!verifySignature()) {
+		if(!verifySignature(kryo)) {
 			throw new MutationVerificationException(this, "Signature is not valid")
 		}
 		if(getBytes(kryo).size() > configuration.maxSizePerMutation) {
@@ -41,8 +41,8 @@ import com.sirolf2009.objectchain.common.exception.MutationVerificationException
 		}
 	}
 	
-	def verifySignature() {
-		return verify(object.toString(), signature, publicKey)
+	def verifySignature(Kryo kryo) {
+		return verify(kryo.hash(object).toHexString(), signature, publicKey)
 	}
 	
 	override compareTo(Mutation o) {
@@ -60,9 +60,10 @@ import com.sirolf2009.objectchain.common.exception.MutationVerificationException
 	def toString(Kryo kryo) {
 		return 
 		'''
-		Mutation «hash(kryo).toHexString()» [ 
+		Mutation «hash(kryo).toHexString()» [
+			object = «object» 
 			key = «publicKey.encoded.toHexString()»
-			«object»
+			signature = «signature»
 		]
 		'''
 	}

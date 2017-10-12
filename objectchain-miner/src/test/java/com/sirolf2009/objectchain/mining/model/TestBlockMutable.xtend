@@ -23,7 +23,7 @@ class TestBlockMutable {
 		
 		val blockMutable = new BlockMutable(new BlockHeaderMutable(#[1 as byte, 2 as byte, 3 as byte], BigInteger.TEN), new TreeSet())
 		Assert.assertNull(null, blockMutable.header.merkleRoot)
-		blockMutable.addMutation(kryo, configuration, new Mutation("Hello World!", keys))
+		blockMutable.addMutation(kryo, configuration, new Mutation("Hello World!", kryo, keys))
 		Assert.assertNotNull(null, blockMutable.header.merkleRoot)
 	}
 	
@@ -34,7 +34,7 @@ class TestBlockMutable {
 		KryoRegistrationNode.register(kryo, configuration)
 		
 		val blockMutable = new BlockMutable(new BlockHeaderMutable(#[1 as byte, 2 as byte, 3 as byte], BigInteger.TEN), new TreeSet())
-		blockMutable.addMutation(kryo, configuration, new Mutation("Hello World!", keys))
+		blockMutable.addMutation(kryo, configuration, new Mutation("Hello World!", kryo, keys))
 		
 		println(blockMutable.header.hash(kryo).toHexString())
 		println(blockMutable.immutable().header.hash(kryo).toHexString())
