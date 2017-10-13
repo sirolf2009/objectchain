@@ -387,6 +387,7 @@ abstract class Node implements AutoCloseable {
 		broadcast(new NewMutation() => [
 			mutation = messageMutation
 		])
+		return messageMutation
 	}
 
 	def broadcast(Object object) {
