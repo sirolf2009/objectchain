@@ -283,7 +283,6 @@ abstract class Node implements AutoCloseable {
 						blockchain.mainBranch = new Branch(sync.newBlocks.get(0), new ArrayList(Arrays.asList(sync.newBlocks.get(0))), new ArrayList(Arrays.asList(configuration.genesisState)))
 						log.info("Blockchain has been downloaded")
 						onSynchronised()
-						onInitialized()
 					}
 				} else {
 					try {
@@ -294,7 +293,6 @@ abstract class Node implements AutoCloseable {
 							sync.newBlocks.stream().skip(1).forEach[block|blockchain.mainBranch.addBlock(it, configuration, block)]
 							log.info("Blockchain has been downloaded")
 							onSynchronised()
-							onInitialized()
 							return null
 						]
 					} catch(BranchVerificationException e) {
@@ -310,9 +308,6 @@ abstract class Node implements AutoCloseable {
 	}
 
 	def void onSynchronised() {
-	}
-
-	def void onInitialized() {
 	}
 
 	def synchronized handleNewBlock(Connection connection, NewBlock newBlock) {
@@ -410,7 +405,7 @@ abstract class Node implements AutoCloseable {
 	}
 
 	def getTrackedNodes() {
-		return trackers.map[getTrackedNodes(it)].map[tracked].flatten.filter[!it.host.equals("localhost") && !it.port.equals(nodePort)].toSet()
+		return trackers.map[getTrackedNodes(it)].map[tracked].flatten.toSet()
 	}
 
 	def getTrackedNodes(InetSocketAddress tracker) {
@@ -460,7 +455,7 @@ abstract class Node implements AutoCloseable {
 	override close() throws Exception {
 		server.close()
 		synchronized(clients) {
-			val itr = clients.iterator
+			val itr = clients.clone.iterator
 			while(itr.hasNext()) {
 				itr.next().close()
 			}

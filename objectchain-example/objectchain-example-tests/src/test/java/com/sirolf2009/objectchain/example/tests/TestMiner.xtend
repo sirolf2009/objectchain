@@ -29,18 +29,19 @@ class TestMiner {
 		], "Tracker").start()
 		Thread.sleep(1000)
 		new Thread([
+			new ChatMiner(#[new InetSocketAddress("localhost", 2012)], 4569, Keys.generateAssymetricPair()) => [
+				miner.set(it)
+				start()
+			]
+		], "Miner").start()
+		Thread.sleep(1000)
+		new Thread([
 			new ChatNode(#[new InetSocketAddress("localhost", 2012)], 4567, Keys.generateAssymetricPair()) => [
 				node.set(it)
 				start()
 			]
 		], "Node1").start()
 		Thread.sleep(1000)
-		new Thread([
-			new ChatMiner(#[new InetSocketAddress("localhost", 2012)], 4569, Keys.generateAssymetricPair()) => [
-				miner.set(it)
-				start()
-			]
-		], "Miner").start()
 
 		node.say("Hello World!")
 
