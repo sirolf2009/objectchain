@@ -2,5 +2,6 @@
     <wb-module deploy-name="objectchain-common">
         <wb-resource deploy-path="/" source-path="/src/main/java"/>
         <wb-resource deploy-path="/" source-path="/target/xtend-gen/main"/>
+        <wb-resource deploy-path="/" source-path="/target/xtend-gen/test"/>
     </wb-module>
 </project-modules>
