@@ -14,6 +14,15 @@ A rule would be something like, if Alice submits a Transaction
 
 Note that while I've given a Bitcoin example, this system is not limited to cryptocurrencies. If you would like to make, for instance, a file sharing system then that would still be possible. The models and rules would simply need to be defined differently.
 
+## Maven
+```xml
+<dependency>
+    <groupId>com.sirolf2009</groupId>
+    <artifactId>objectchain</artifactId>
+    <version>0.0.1</version>
+</dependency>
+```
+
 ## Documentation
 
 I personally don't believe in documentation. If the code isn't self-explanatory, I'd rather have you open an issue, describing the piece of code that you can't understand and I'll see about re-writing it.
