@@ -6,11 +6,6 @@ It follows the same project structure as the Objectchain project, except for the
 ## Magic
 The *vast* majority of the magic happens in the [Node class](https://github.com/sirolf2009/objectchain/blob/master/objectchain-example/objectchain-example-node/src/main/java/com/sirolf2009/objectchain/example/node/ChatNode.xtend) with the interesting parts being:
 ```xtend
-  /** The original state of the blockchain, or "genesis" state. In this case it features just some empty lists */
-	override getOriginalState() {
-		return new ChatState(new ArrayList(), new Stack(), new HashMap())
-	}
-
 	/** When we launch the application, we first synchronise to download any missing data. After sync we start running our chat */
 	override onSynchronised() {
 		new Thread [
@@ -41,6 +36,19 @@ The *vast* majority of the magic happens in the [Node class](https://github.com/
 				}
 			}
 		].start()
+	}
+	
+	/**
+	 * This is called whenever a new mutation is broadcasted. We check if we consider it valid. If it is, it gets saved and propagated further to the network
+	 */
+	override isValid(Mutation mutation) {
+		//If someone claims a username, make sure it's not been claimed by someone else
+		if(mutation.object instanceof ClaimUsername) {
+			val claim = mutation.object as ClaimUsername
+			val state = blockchain.mainBranch.lastState as ChatState
+			return !state.usernames.values.contains(claim.username)
+		}
+		return true
 	}
 	
 	/**
