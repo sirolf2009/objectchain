@@ -45,6 +45,7 @@ import org.slf4j.LoggerFactory
 import com.sirolf2009.objectchain.common.BlockchainPersistence
 import java.net.InetSocketAddress
 import com.sirolf2009.objectchain.common.exception.MutationVerificationException
+import com.sirolf2009.objectchain.common.interfaces.IHashable
 
 @Accessors
 abstract class Node implements AutoCloseable {
@@ -374,6 +375,10 @@ abstract class Node implements AutoCloseable {
 	}
 
 	def void onOrphansExpanded() {
+	}
+	
+	def hash(IHashable object) {
+		kryoPool.run[object.hash(it)]
 	}
 
 	def submitMutation(Object object) {

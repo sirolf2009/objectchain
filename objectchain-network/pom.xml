@@ -4,7 +4,7 @@
 	<parent>
 		<artifactId>objectchain</artifactId>
 		<groupId>com.sirolf2009</groupId>
-		<version>0.0.1</version>
+		<version>0.0.2-SNAPSHOT</version>
 	</parent>
 	<artifactId>objectchain-network</artifactId>
 	<name>Objectchain Network</name>
