@@ -138,6 +138,7 @@ abstract class Node implements AutoCloseable {
 
 			override synchronized disconnected(Connection connection) {
 				log.info("{} disconnected from us", connection)
+				onDisconnected(connection)
 			}
 
 		})
@@ -178,6 +179,7 @@ abstract class Node implements AutoCloseable {
 					synchronized(clients) {
 						clients.remove(client)
 					}
+					onDisconnected(connection)
 				}
 
 			})
@@ -197,6 +199,9 @@ abstract class Node implements AutoCloseable {
 				lastKnownBlock = Optional.empty()
 			])
 		}
+	}
+	
+	def onDisconnected(Connection connection) {
 	}
 
 	def handleNewObject(Kryo kryo, Connection connection, Object object) {
