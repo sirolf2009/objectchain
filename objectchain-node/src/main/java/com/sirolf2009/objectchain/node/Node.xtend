@@ -106,6 +106,7 @@ abstract class Node implements AutoCloseable {
 				log.warn("No peers found, creating genesis block")
 				val genesis = new Block(new BlockHeader(newArrayOfSize(0), newArrayOfSize(0), new Date(), configuration.initialTarget, 0), new TreeSet())
 				blockchain.mainBranch = new Branch(genesis, new ArrayList(Arrays.asList(genesis)), new ArrayList(Arrays.asList(configuration.genesisState)))
+				onBlockchainExpanded()
 			} else {
 				log.warn("No peers found, nothing to synchronise")
 			}
@@ -201,7 +202,7 @@ abstract class Node implements AutoCloseable {
 		}
 	}
 	
-	def onDisconnected(Connection connection) {
+	def void onDisconnected(Connection connection) {
 	}
 
 	def handleNewObject(Kryo kryo, Connection connection, Object object) {
@@ -289,6 +290,7 @@ abstract class Node implements AutoCloseable {
 						blockchain.mainBranch = new Branch(sync.newBlocks.get(0), new ArrayList(Arrays.asList(sync.newBlocks.get(0))), new ArrayList(Arrays.asList(configuration.genesisState)))
 						log.info("Blockchain has been downloaded")
 						onSynchronised()
+						onBlockchainExpanded()
 					}
 				} else {
 					try {
@@ -299,6 +301,7 @@ abstract class Node implements AutoCloseable {
 							sync.newBlocks.stream().skip(1).forEach[block|blockchain.mainBranch.addBlock(it, configuration, block)]
 							log.info("Blockchain has been downloaded")
 							onSynchronised()
+							onBlockchainExpanded()
 							return null
 						]
 					} catch(BranchVerificationException e) {
@@ -338,6 +341,7 @@ abstract class Node implements AutoCloseable {
 				try {
 					blockchain.mainBranch.addBlock(kryo, configuration, newBlock)
 					onBranchExpanded()
+					onBlockchainExpanded()
 				} catch(BranchExpansionException e) {
 					log.error("Received block, but it breaks the main branch verification. branch={}\nblock={}", blockchain.mainBranch.toString(kryo), newBlock.toString(kryo), e)
 				}
@@ -347,6 +351,7 @@ abstract class Node implements AutoCloseable {
 				try {
 					branch.addBlock(kryo, configuration, newBlock)
 					onBranchExpanded()
+					onBlockchainExpanded()
 					log.error("Added block {}", newBlock.hash(kryo))
 				} catch(BranchVerificationException e) {
 					log.error("Received block, but it breaks the side branch verification", e)
@@ -355,6 +360,7 @@ abstract class Node implements AutoCloseable {
 					log.info("Side branch is longer than the main branch. Setting it as the main branch")
 					blockchain.promoteBranch(branch)
 					onBranchReplace()
+					onBlockchainExpanded()
 				}
 				broadcast(newBlock, Optional.of(connection))
 			} else {
