@@ -345,6 +345,7 @@ abstract class Node implements AutoCloseable {
 				} catch(BranchExpansionException e) {
 					log.error("Received block, but it breaks the main branch verification. branch={}\nblock={}", blockchain.mainBranch.toString(kryo), newBlock.toString(kryo), e)
 				}
+				broadcast(newBlock, Optional.of(connection))
 			} else if(blockchain.sideBranches.findFirst[canExpandWith(kryo, newBlock)] !== null) {
 				log.info("New block on side branch has been mined")
 				val branch = blockchain.sideBranches.findFirst[canExpandWith(kryo, newBlock)]
@@ -355,6 +356,7 @@ abstract class Node implements AutoCloseable {
 					log.error("Added block {}", newBlock.hash(kryo))
 				} catch(BranchVerificationException e) {
 					log.error("Received block, but it breaks the side branch verification", e)
+					return null
 				}
 				if(blockchain.isBranchLonger(branch)) {
 					log.info("Side branch is longer than the main branch. Setting it as the main branch")
