@@ -1,21 +1,27 @@
 package com.sirolf2009.objectchain.tracker
 
 import com.esotericsoftware.kryonet.Connection
+import com.esotericsoftware.kryonet.FrameworkMessage.KeepAlive
 import com.esotericsoftware.kryonet.Listener
 import com.esotericsoftware.kryonet.Server
 import com.sirolf2009.objectchain.network.KryoRegistrationTracker
+import com.sirolf2009.objectchain.network.tracker.TrackMe
 import com.sirolf2009.objectchain.network.tracker.TrackedNode
 import com.sirolf2009.objectchain.network.tracker.TrackerList
-import com.sirolf2009.objectchain.network.tracker.TrackerRequest
 import java.util.TreeSet
+import org.eclipse.xtend.lib.annotations.Data
 import org.slf4j.LoggerFactory
-import com.esotericsoftware.kryonet.FrameworkMessage.KeepAlive
+import com.sirolf2009.objectchain.network.tracker.TrackerRequest
+import com.sirolf2009.objectchain.network.tracker.UntrackMe
+import java.util.Collections
+import java.util.stream.Collectors
+import com.sirolf2009.objectchain.tracker.Tracker.TrackedConnectionNode
 
 class Tracker implements AutoCloseable {
 	
 	static val log = LoggerFactory.getLogger(Tracker)
 	val int port
-	val nodes = new TreeSet<TrackedNode>()
+	val nodes = Collections.synchronizedSet(new TreeSet<TrackedConnectionNode>())
 	val Server server
 	
 	new(int port) {
@@ -37,30 +43,48 @@ class Tracker implements AutoCloseable {
 					return
 				}
 				log.debug("{} send {}", connection, object)
-				if(object instanceof TrackerRequest) {
-					log.info("{} requested tracker list", connection)
-					val response = new TrackerList() => [
-						tracked = nodes.toList()
-					]
-					connection.sendTCP(response)
-					nodes.add(new TrackedNode() => [
+				if(object instanceof TrackMe) {
+					nodes.add(new TrackedConnectionNode(new TrackedNode() => [
 						it.host = connection.remoteAddressTCP.address.hostAddress
 						it.port = object.nodePort
-					])
-					log.debug("send {} the tracker list", connection)
+					], connection))
+					log.debug("added {}:{} to the tracker list", connection, object.nodePort)
+				} else if(object instanceof UntrackMe) {
+					nodes.stream().filter[node| node.connection == connection && node.node.port == port].findFirst().ifPresent[
+						nodes.remove(it)
+						log.debug("removed {}:{} from the tracker list", connection, object.nodePort)
+					]
+				} else if(object instanceof TrackerRequest) {
+					log.info("{} requested tracker list", connection)
+					val response = new TrackerList() => [
+						tracked = nodes.map[node].toList()
+					]
+					connection.sendTCP(response)
 				}
 			}
 			
 			override disconnected(Connection connection) {
 				log.info("{} disconnected", connection)
+				nodes.removeAll(nodes.stream().filter[node| node.connection == connection].collect(Collectors.toList()))
 			}
 
 		})
 	}
 	
+	
 	def start() {
 		log.info("Starting tracker")
 		server.start()
+	}
+	
+	@Data static class TrackedConnectionNode implements Comparable<TrackedConnectionNode> {
+		val TrackedNode node
+		val Connection connection
+		
+		override compareTo(TrackedConnectionNode o) {
+			return (connection.toString()+":"+node.getPort()).compareTo(o.connection.toString()+":"+o.node.getPort())
+		}
+		
 	}
 	
 	override close() throws Exception {

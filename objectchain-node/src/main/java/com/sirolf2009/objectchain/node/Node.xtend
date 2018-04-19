@@ -26,7 +26,6 @@ import com.sirolf2009.objectchain.network.node.SyncRequest
 import com.sirolf2009.objectchain.network.node.SyncResponse
 import com.sirolf2009.objectchain.network.tracker.TrackedNode
 import com.sirolf2009.objectchain.network.tracker.TrackerList
-import com.sirolf2009.objectchain.network.tracker.TrackerRequest
 import java.io.File
 import java.security.KeyPair
 import java.util.ArrayList
@@ -46,6 +45,8 @@ import com.sirolf2009.objectchain.common.BlockchainPersistence
 import java.net.InetSocketAddress
 import com.sirolf2009.objectchain.common.exception.MutationVerificationException
 import com.sirolf2009.objectchain.common.interfaces.IHashable
+import com.sirolf2009.objectchain.network.tracker.TrackMe
+import com.sirolf2009.objectchain.network.tracker.TrackerRequest
 
 @Accessors
 abstract class Node implements AutoCloseable {
@@ -321,7 +322,6 @@ abstract class Node implements AutoCloseable {
 
 	def synchronized handleNewBlock(Connection connection, NewBlock newBlock) {
 		handleNewBlock(connection, newBlock.block)
-		broadcast(newBlock, Optional.of(connection))
 	}
 
 	def synchronized handleNewBlock(Connection connection, Block newBlock) {
@@ -343,6 +343,9 @@ abstract class Node implements AutoCloseable {
 					blockchain.mainBranch.addBlock(kryo, configuration, newBlock)
 					onBranchExpanded()
 					onBlockchainExpanded()
+					broadcast(new NewBlock() => [
+						block = newBlock
+					], Optional.of(connection))
 				} catch(BranchExpansionException e) {
 					log.error("Received block, but it breaks the main branch verification. branch={}\nblock={}", blockchain.mainBranch.toString(kryo), newBlock.toString(kryo), e)
 				}
@@ -353,6 +356,9 @@ abstract class Node implements AutoCloseable {
 					branch.addBlock(kryo, configuration, newBlock)
 					onBranchExpanded()
 					onBlockchainExpanded()
+					broadcast(new NewBlock() => [
+						block = newBlock
+					], Optional.of(connection))
 					log.error("Added block {}", newBlock.hash(kryo))
 				} catch(BranchVerificationException e) {
 					log.error("Received block, but it breaks the side branch verification", e)
@@ -371,6 +377,9 @@ abstract class Node implements AutoCloseable {
 						lastKnownBlock = Optional.of(blockchain.mainBranch.blocks.last.hash(kryo))
 					])
 					onOrphansExpanded()
+					broadcast(new NewBlock() => [
+						block = newBlock
+					], Optional.of(connection))
 				}
 			}
 			return null
@@ -437,7 +446,8 @@ abstract class Node implements AutoCloseable {
 
 			override connected(Connection connection) {
 				log.info("Connected to {}, sending request", tracker)
-				connection.sendTCP(new TrackerRequest() => [
+				connection.sendTCP(new TrackerRequest())
+				connection.sendTCP(new TrackMe() => [
 					it.nodePort = nodePort
 				])
 			}
