@@ -321,6 +321,7 @@ abstract class Node implements AutoCloseable {
 
 	def synchronized handleNewBlock(Connection connection, NewBlock newBlock) {
 		handleNewBlock(connection, newBlock.block)
+		broadcast(newBlock, Optional.of(connection))
 	}
 
 	def synchronized handleNewBlock(Connection connection, Block newBlock) {
@@ -345,7 +346,6 @@ abstract class Node implements AutoCloseable {
 				} catch(BranchExpansionException e) {
 					log.error("Received block, but it breaks the main branch verification. branch={}\nblock={}", blockchain.mainBranch.toString(kryo), newBlock.toString(kryo), e)
 				}
-				broadcast(newBlock, Optional.of(connection))
 			} else if(blockchain.sideBranches.findFirst[canExpandWith(kryo, newBlock)] !== null) {
 				log.info("New block on side branch has been mined")
 				val branch = blockchain.sideBranches.findFirst[canExpandWith(kryo, newBlock)]
@@ -364,7 +364,6 @@ abstract class Node implements AutoCloseable {
 					onBranchReplace()
 					onBlockchainExpanded()
 				}
-				broadcast(newBlock, Optional.of(connection))
 			} else {
 				if(blockchain.orphanedBlocks.add(newBlock)) {
 					log.info("Received orphan block, sending sync request", connection)
