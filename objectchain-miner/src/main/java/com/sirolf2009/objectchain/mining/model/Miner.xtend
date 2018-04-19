@@ -58,7 +58,7 @@ abstract class Miner extends Node {
 						}
 					}
 				} else {
-					log.info("Waiting for mutations")
+					log.debug("Waiting for mutations")
 				}
 			}
 		}
