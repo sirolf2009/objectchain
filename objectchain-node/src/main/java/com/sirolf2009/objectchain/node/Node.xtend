@@ -326,6 +326,10 @@ abstract class Node implements AutoCloseable {
 
 	def synchronized handleNewBlock(Connection connection, Block newBlock) {
 		log.info("Received new block")
+		if(!isValid(newBlock)) {
+			log.warn("{} send block {}, but it is not valid", connection, newBlock)
+			return
+		}
 		kryoPool.run [ kryo |
 			if(blockchain.mainBranch.blocks.last().hash(kryo).equals(newBlock.hash(kryo))) {
 				return null
@@ -384,6 +388,10 @@ abstract class Node implements AutoCloseable {
 			}
 			return null
 		]
+	}
+
+	def boolean isValid(Block block) {
+		return true
 	}
 
 	def void onBlockchainExpanded() {
