@@ -47,6 +47,7 @@ import com.sirolf2009.objectchain.common.exception.MutationVerificationException
 import com.sirolf2009.objectchain.common.interfaces.IHashable
 import com.sirolf2009.objectchain.network.tracker.TrackMe
 import com.sirolf2009.objectchain.network.tracker.TrackerRequest
+import com.sirolf2009.objectchain.common.model.Hash
 
 @Accessors
 abstract class Node implements AutoCloseable {
@@ -105,7 +106,7 @@ abstract class Node implements AutoCloseable {
 			synchronised = true
 			if(blockchain.mainBranch === null || blockchain.mainBranch.size() == 0) {
 				log.warn("No peers found, creating genesis block")
-				val genesis = new Block(new BlockHeader(newArrayOfSize(0), newArrayOfSize(0), new Date(), configuration.initialTarget, 0), new TreeSet())
+				val genesis = new Block(new BlockHeader(new Hash(newArrayOfSize(0)), new Hash(newArrayOfSize(0)), new Date(), configuration.initialTarget, 0), new TreeSet())
 				blockchain.mainBranch = new Branch(genesis, new ArrayList(Arrays.asList(genesis)), new ArrayList(Arrays.asList(configuration.genesisState)))
 				onBlockchainExpanded()
 			} else {
@@ -286,7 +287,7 @@ abstract class Node implements AutoCloseable {
 			if(!synchronised) {
 				val branch = new Branch(sync.newBlocks.get(0), new ArrayList(sync.newBlocks), new ArrayList())
 				if(branch.blocks.size() == 1) {
-					if(branch.blocks.get(0).header.previousBlock.size() == 0 && branch.blocks.get(0).mutations.size() == 0) {
+					if(branch.blocks.get(0).header.previousBlock.getBytes().size() == 0 && branch.blocks.get(0).mutations.size() == 0) {
 						synchronised = true
 						blockchain.mainBranch = new Branch(sync.newBlocks.get(0), new ArrayList(Arrays.asList(sync.newBlocks.get(0))), new ArrayList(Arrays.asList(configuration.genesisState)))
 						log.info("Blockchain has been downloaded")

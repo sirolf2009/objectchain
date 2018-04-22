@@ -5,6 +5,7 @@ import com.esotericsoftware.kryo.io.Input
 import com.esotericsoftware.kryo.io.Output
 import com.sirolf2009.objectchain.common.model.Block
 import com.sirolf2009.objectchain.common.model.BlockHeader
+import com.sirolf2009.objectchain.common.model.Hash
 import java.io.ByteArrayOutputStream
 import java.math.BigInteger
 import java.util.ArrayList
@@ -20,9 +21,10 @@ class TestSerializerBlock {
 		val kryo = new Kryo() => [
 			register(BlockHeader, new SerializerBlockHeader())
 			register(Block, new SerializerBlock())
+			register(Hash, new SerializerHash())
 		]
 		
-		val header = new BlockHeader(new ArrayList(), new ArrayList(), new Date(), BigInteger.ONE, 0)
+		val header = new BlockHeader(new Hash(new ArrayList()), new Hash(new ArrayList()), new Date(), BigInteger.ONE, 0)
 		val block = new Block(header, new TreeSet())
 		
 		val outBuffer = new ByteArrayOutputStream()

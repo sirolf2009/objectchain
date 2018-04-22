@@ -50,7 +50,7 @@ import com.sirolf2009.objectchain.common.interfaces.IHashable
 			throw new BranchVerificationException(this, e.block.getPreviousBlock(), e.block, "Failed to verify block", e)
 		}
 		blocks.stream().skip(1).forEach [
-			if(header.previousBlock.size() == 0 && header.merkleRoot.size() == 0 && mutations.size() == 0) {
+			if(header.previousBlock.getBytes().size() == 0 && header.merkleRoot.getBytes().size() == 0 && mutations.size() == 0) {
 				throw new BranchVerificationException(this, it.getPreviousBlock(), it, "Found empty block which isn't a genesis block")
 			}
 		]

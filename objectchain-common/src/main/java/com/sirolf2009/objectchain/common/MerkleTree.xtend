@@ -9,13 +9,14 @@ import org.slf4j.LoggerFactory
 
 import static extension com.sirolf2009.objectchain.common.crypto.Hashing.toHexString
 import java.util.TreeSet
+import com.sirolf2009.objectchain.common.model.Hash
 
 class MerkleTree {
 	
 	static val log = LoggerFactory.getLogger(MerkleTree)
 	
-	def public static List<Byte> merkleTreeMutations(Kryo kryo, TreeSet<Mutation> hashes) {
-		return merkleTree(hashes.map[hash(kryo)].toList())
+	def public static Hash merkleTreeMutations(Kryo kryo, TreeSet<Mutation> hashes) {
+		return new Hash(merkleTree(hashes.map[hash(kryo).getBytes()].toList()))
 	}
 	
 	def public static String merkleTreeHex(List<String> hashes) {

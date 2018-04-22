@@ -18,6 +18,7 @@ import com.sirolf2009.objectchain.common.model.Mutation
 import com.sirolf2009.objectchain.common.crypto.Keys
 import java.io.File
 import junit.framework.Assert
+import com.sirolf2009.objectchain.common.model.Hash
 
 class TestBlockchainPersistence {
 
@@ -30,7 +31,7 @@ class TestBlockchainPersistence {
 		KryoRegistryCommon.register(kryo, configuration)
 		val keys = Keys.generateAssymetricPair()
 		val blockchain = new BlockChain() => [
-			val genesis = new Block(new BlockHeader(#[], new ArrayList(), new Date(), target, 0), new TreeSet())
+			val genesis = new Block(new BlockHeader(new Hash(#[]), new Hash(new ArrayList()), new Date(), target, 0), new TreeSet())
 			mainBranch = new Branch(genesis, new ArrayList(Arrays.asList(genesis)), new ArrayList(Arrays.asList(new TestState(0)))) => [
 				val mutation1 = new Mutation("1", kryo, keys)
 				val block1 = new Block(new BlockHeader(genesis.hash(kryo), MerkleTree.merkleTreeMutations(kryo, new TreeSet(#[mutation1])), new Date(), target, 0), new TreeSet(Arrays.asList(mutation1)))
@@ -60,7 +61,7 @@ class TestBlockchainPersistence {
 		KryoRegistryCommon.register(kryo, configuration)
 		val keys = Keys.generateAssymetricPair()
 
-		val genesis = new Block(new BlockHeader(#[], new ArrayList(), new Date(), target, 0), new TreeSet())
+		val genesis = new Block(new BlockHeader(new Hash(#[]), new Hash(new ArrayList()), new Date(), target, 0), new TreeSet())
 		val mutation1 = new Mutation("1", kryo, keys)
 		val block1 = new Block(new BlockHeader(genesis.hash(kryo), MerkleTree.merkleTreeMutations(kryo, new TreeSet(#[mutation1])), new Date(), target, 0), new TreeSet(Arrays.asList(mutation1)))
 		val mutation2 = new Mutation("2", kryo, keys)

@@ -3,9 +3,9 @@ package com.sirolf2009.objectchain.mining.model
 import com.esotericsoftware.kryo.Kryo
 import com.sirolf2009.objectchain.common.interfaces.IBlockHeader
 import com.sirolf2009.objectchain.common.model.BlockHeader
+import com.sirolf2009.objectchain.common.model.Hash
 import java.math.BigInteger
 import java.util.Date
-import java.util.List
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.eclipse.xtend.lib.annotations.EqualsHashCode
 import org.eclipse.xtend.lib.annotations.ToString
@@ -19,8 +19,8 @@ import org.eclipse.xtend.lib.annotations.ToString
 class BlockHeaderMutable implements IBlockHeader {
 	
 	val short version = 1 as short
-	val List<Byte> previousBlock
-	var List<Byte> merkleRoot
+	val Hash previousBlock
+	var Hash merkleRoot
 	var Date time = new Date()
 	val BigInteger target
 	var int nonce

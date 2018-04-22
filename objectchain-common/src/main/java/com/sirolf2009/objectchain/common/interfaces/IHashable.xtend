@@ -6,6 +6,7 @@ import com.esotericsoftware.kryo.io.Output
 import java.io.ByteArrayOutputStream
 
 import static extension com.sirolf2009.objectchain.common.crypto.Hashing.*
+import com.sirolf2009.objectchain.common.model.Hash
 
 interface IHashable {
 	
@@ -18,7 +19,7 @@ interface IHashable {
 	}
 	
 	def static hash(Kryo kryo, Object object) {
-		getBytes(kryo, object).doubleHash().toList()
+		new Hash(getBytes(kryo, object).doubleHash().toList())
 	}
 	
 	def static getBytes(Kryo kryo, Object object) {

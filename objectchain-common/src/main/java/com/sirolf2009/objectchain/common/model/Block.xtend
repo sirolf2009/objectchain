@@ -5,11 +5,8 @@ import com.sirolf2009.objectchain.common.MerkleTree
 import com.sirolf2009.objectchain.common.exception.BlockVerificationException
 import com.sirolf2009.objectchain.common.exception.MutationVerificationException
 import com.sirolf2009.objectchain.common.interfaces.IBlock
-import java.math.BigInteger
 import java.util.TreeSet
 import org.eclipse.xtend.lib.annotations.Data
-
-import static extension com.sirolf2009.objectchain.common.crypto.Hashing.*
 
 @Data class Block implements IBlock {
 
@@ -21,14 +18,14 @@ import static extension com.sirolf2009.objectchain.common.crypto.Hashing.*
 	}
 
 	def void verify(Kryo kryo, Configuration configuration) throws BlockVerificationException {
-		if(header.previousBlock.size() == 0 && header.merkleRoot.size() == 0 && mutations.size() == 0) {
+		if(header.previousBlock.getBytes().size() == 0 && header.merkleRoot.getBytes().size() == 0 && mutations.size() == 0) {
 			return //genesis block
 		}
 		if(mutations.size() == 0) {
 			throw new BlockVerificationException(this, "Block does not have mutations")
 		}
 		if(!header.isBelowTarget(kryo)) {
-			throw new BlockVerificationException(this, '''Block is not below target, block=«new BigInteger(header.hash(kryo).toHexString(), 16)» target=«header.target»''')
+			throw new BlockVerificationException(this, '''Block is not below target, block=«header.hash(kryo).toBigInteger()» target=«header.target»''')
 		}
 		try {
 			mutations.forEach[verify(kryo, configuration)]
@@ -36,7 +33,7 @@ import static extension com.sirolf2009.objectchain.common.crypto.Hashing.*
 			throw new BlockVerificationException(this, "Failed to verify mutation", e)
 		}
 		if(!MerkleTree.merkleTreeMutations(kryo, mutations).equals(header.merkleRoot)) {
-			throw new BlockVerificationException(this, '''Wrong merkleTree, expected=«MerkleTree.merkleTreeMutations(kryo, mutations).toHexString()», actual=«header.merkleRoot.toHexString()»''')
+			throw new BlockVerificationException(this, '''Wrong merkleTree, expected=«MerkleTree.merkleTreeMutations(kryo, mutations)», actual=«header.merkleRoot»''')
 		}
 		if(mutations.size() > configuration.maxMutationsPerBlock) {
 			throw new BlockVerificationException(this, '''block exceeds max mutations «configuration.maxMutationsPerBlock» with «mutations.size()»''')
@@ -46,10 +43,10 @@ import static extension com.sirolf2009.objectchain.common.crypto.Hashing.*
 	def toString(Kryo kryo) {
 		return 
 		'''
-			Block «header.hash(kryo).toHexString()» [
+			Block «header.hash(kryo)» [
 				version=«header.version»
-				prevBlock=«header.previousBlock.toHexString()»
-				merkleRoot=«header.merkleRoot.toHexString()»
+				prevBlock=«header.previousBlock»
+				merkleRoot=«header.merkleRoot»
 				time=«header.time»
 				target=«header.target.toString(16)»
 				nonce=«header.nonce»

@@ -23,7 +23,7 @@ import com.sirolf2009.objectchain.common.exception.MutationVerificationException
 	}
 	
 	new(Object object, Kryo kryo, PrivateKey privateKey, PublicKey publicKey) {
-		this(object, kryo.hash(object).toHexString().sign(privateKey), publicKey)
+		this(object, kryo.hash(object).toString().sign(privateKey), publicKey)
 	}
 	
 	new(Object object, String signature, PublicKey publicKey) {
@@ -42,7 +42,7 @@ import com.sirolf2009.objectchain.common.exception.MutationVerificationException
 	}
 	
 	def verifySignature(Kryo kryo) {
-		return verify(kryo.hash(object).toHexString(), signature, publicKey)
+		return verify(kryo.hash(object).toString(), signature, publicKey)
 	}
 	
 	override compareTo(Mutation o) {
@@ -60,7 +60,7 @@ import com.sirolf2009.objectchain.common.exception.MutationVerificationException
 	def toString(Kryo kryo) {
 		return 
 		'''
-		Mutation «hash(kryo).toHexString()» [
+		Mutation «hash(kryo)» [
 			object = «object» 
 			key = «publicKey.encoded.toHexString()»
 			signature = «signature»

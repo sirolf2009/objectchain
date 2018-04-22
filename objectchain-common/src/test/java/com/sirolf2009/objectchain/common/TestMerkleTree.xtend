@@ -4,6 +4,7 @@ import com.esotericsoftware.kryo.Kryo
 import com.sirolf2009.objectchain.common.crypto.Keys
 import com.sirolf2009.objectchain.common.model.Block
 import com.sirolf2009.objectchain.common.model.BlockHeader
+import com.sirolf2009.objectchain.common.model.Hash
 import com.sirolf2009.objectchain.common.model.Mutation
 import java.math.BigInteger
 import java.util.Date
@@ -30,7 +31,7 @@ class TestMerkleTree {
 		Assert.assertEquals(MerkleTree.merkleTreeMutations(kryo, new TreeSet(#[mutation1, mutation2])), MerkleTree.merkleTreeMutations(kryo, new TreeSet(#[mutation2, mutation1])))
 		Assert.assertEquals(mutation1Hash, MerkleTree.merkleTreeMutations(kryo, new TreeSet(#[mutation1])))
 		
-		val genesis = new Block(new BlockHeader(newArrayOfSize(0), newArrayOfSize(0), new Date(), BigInteger.ONE, 0), new TreeSet())
+		val genesis = new Block(new BlockHeader(new Hash(newArrayOfSize(0)), new Hash(newArrayOfSize(0)), new Date(), BigInteger.ONE, 0), new TreeSet())
 		val block = new Block(new BlockHeader(genesis.hash(kryo), MerkleTree.merkleTreeMutations(kryo, new TreeSet(#[mutation1])), new Date(), BigInteger.ONE, 1), new TreeSet(#[mutation1]))
 		Assert.assertEquals(mutation1Hash, block.header.merkleRoot)
 	}

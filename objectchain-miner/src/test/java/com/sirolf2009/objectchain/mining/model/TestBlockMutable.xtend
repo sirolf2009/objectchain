@@ -11,7 +11,7 @@ import java.util.TreeSet
 import junit.framework.Assert
 import org.junit.Test
 
-import static extension com.sirolf2009.objectchain.common.crypto.Hashing.*
+import com.sirolf2009.objectchain.common.model.Hash
 
 class TestBlockMutable {
 	
@@ -21,7 +21,7 @@ class TestBlockMutable {
 		val kryo = new Kryo()
 		KryoRegistrationNode.register(kryo, configuration)
 		
-		val blockMutable = new BlockMutable(new BlockHeaderMutable(#[1 as byte, 2 as byte, 3 as byte], BigInteger.TEN), new TreeSet())
+		val blockMutable = new BlockMutable(new BlockHeaderMutable(new Hash(#[1 as byte, 2 as byte, 3 as byte]), BigInteger.TEN), new TreeSet())
 		Assert.assertNull(null, blockMutable.header.merkleRoot)
 		blockMutable.addMutation(kryo, configuration, new Mutation("Hello World!", kryo, keys))
 		Assert.assertNotNull(null, blockMutable.header.merkleRoot)
@@ -33,11 +33,11 @@ class TestBlockMutable {
 		val kryo = new Kryo()
 		KryoRegistrationNode.register(kryo, configuration)
 		
-		val blockMutable = new BlockMutable(new BlockHeaderMutable(#[1 as byte, 2 as byte, 3 as byte], BigInteger.TEN), new TreeSet())
+		val blockMutable = new BlockMutable(new BlockHeaderMutable(new Hash(#[1 as byte, 2 as byte, 3 as byte]), BigInteger.TEN), new TreeSet())
 		blockMutable.addMutation(kryo, configuration, new Mutation("Hello World!", kryo, keys))
 		
-		println(blockMutable.header.hash(kryo).toHexString())
-		println(blockMutable.immutable().header.hash(kryo).toHexString())
+		println(blockMutable.header.hash(kryo))
+		println(blockMutable.immutable().header.hash(kryo))
 		Assert.assertEquals(blockMutable.header.hash(kryo), blockMutable.immutable().header.hash(kryo))
 		Assert.assertEquals(blockMutable.header.isBelowTarget(kryo), blockMutable.immutable().header.isBelowTarget(kryo))
 	}

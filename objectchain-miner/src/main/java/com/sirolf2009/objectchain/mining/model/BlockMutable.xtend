@@ -1,17 +1,15 @@
 package com.sirolf2009.objectchain.mining.model
 
 import com.esotericsoftware.kryo.Kryo
+import com.sirolf2009.objectchain.common.MerkleTree
 import com.sirolf2009.objectchain.common.interfaces.IBlock
 import com.sirolf2009.objectchain.common.model.Block
+import com.sirolf2009.objectchain.common.model.Configuration
 import com.sirolf2009.objectchain.common.model.Mutation
 import java.util.TreeSet
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.eclipse.xtend.lib.annotations.EqualsHashCode
 import org.eclipse.xtend.lib.annotations.ToString
-
-import static extension com.sirolf2009.objectchain.common.crypto.Hashing.*
-import com.sirolf2009.objectchain.common.model.Configuration
-import com.sirolf2009.objectchain.common.MerkleTree
 
 /**
  * A mutable version of {@link Block} to reduce memory usage when mining
@@ -39,10 +37,10 @@ class BlockMutable implements IBlock {
 	
 	def toString(Kryo kryo) {
 		return '''
-			Block «header.hash(kryo).toHexString()» [
+			Block «header.hash(kryo)» [
 				version=«header.version»
-				prevBlock=«header.previousBlock.toHexString()»
-				merkleRoot=«header.merkleRoot.toHexString()»
+				prevBlock=«header.previousBlock»
+				merkleRoot=«header.merkleRoot»
 				time=«header.time»
 				target=«header.target.toString(16)»
 				nonce=«header.nonce»

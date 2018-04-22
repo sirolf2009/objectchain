@@ -17,13 +17,14 @@ import org.junit.Assert
 import org.junit.Test
 import com.sirolf2009.objectchain.mining.model.BlockHeaderMutable
 import com.sirolf2009.objectchain.mining.model.BlockMutable
+import com.sirolf2009.objectchain.common.model.Hash
 
 class TestMining {
 
 	@Test
 	def void test() {
 		val target = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16).add(BigInteger.ONE) // max possible hash + 1, i.e. hit always
-		val genesis = new Block(new BlockHeader(#[], #[], new Date(), target, 0), new TreeSet())
+		val genesis = new Block(new BlockHeader(new Hash(#[]), new Hash(#[]), new Date(), target, 0), new TreeSet())
 		val branch = new Branch(genesis, new ArrayList(#[genesis]), new ArrayList(#[new TestState(1)]))
 		val keys = Keys.generateAssymetricPair()
 

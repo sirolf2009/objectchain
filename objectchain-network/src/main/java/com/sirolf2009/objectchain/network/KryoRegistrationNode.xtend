@@ -2,11 +2,11 @@ package com.sirolf2009.objectchain.network
 
 import com.esotericsoftware.kryo.Kryo
 import com.sirolf2009.objectchain.common.KryoRegistryCommon
+import com.sirolf2009.objectchain.common.model.Configuration
 import com.sirolf2009.objectchain.network.node.NewBlock
 import com.sirolf2009.objectchain.network.node.NewMutation
 import com.sirolf2009.objectchain.network.node.SyncRequest
 import com.sirolf2009.objectchain.network.node.SyncResponse
-import com.sirolf2009.objectchain.common.model.Configuration
 
 class KryoRegistrationNode {
 	

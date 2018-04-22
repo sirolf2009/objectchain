@@ -20,7 +20,7 @@ class TestBranch {
 		val kryo = new Kryo()
 		KryoRegistryCommon.register(kryo, null)
 		val keys = Keys.generateAssymetricPair()
-		val genesis = new Block(new BlockHeader(newArrayOfSize(0), newArrayOfSize(0), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 0), new TreeSet())
+		val genesis = new Block(new BlockHeader(new Hash(newArrayOfSize(0)), new Hash(newArrayOfSize(0)), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 0), new TreeSet())
 		val branch = new Branch(genesis, new ArrayList(Arrays.asList(genesis)), new ArrayList(Arrays.asList(new TestState(1))))
 		val configuration = new Configuration(4, Duration.ofMillis(1), 10, 1024, new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), new TestState(0))
 
@@ -48,16 +48,16 @@ class TestBranch {
 
 		val kryo = new Kryo()
 		KryoRegistryCommon.register(kryo, null)
-		val genesis = new Block(new BlockHeader(newArrayOfSize(0), newArrayOfSize(0), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 0), new TreeSet())
+		val genesis = new Block(new BlockHeader(new Hash(newArrayOfSize(0)), new Hash(newArrayOfSize(0)), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 0), new TreeSet())
 		val branch = new Branch(genesis, new ArrayList(Arrays.asList(genesis)), new ArrayList())
 
 		Assert.assertFalse(branch.shouldRetarget(5))
 		Assert.assertFalse(branch.shouldRetarget(4))
 		Assert.assertFalse(branch.shouldRetarget(3))
 
-		val main1 = new Block(new BlockHeader(genesis.hash(kryo), newArrayOfSize(0), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 1), new TreeSet())
-		val main2 = new Block(new BlockHeader(main1.hash(kryo), newArrayOfSize(0), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 2), new TreeSet())
-		val main3 = new Block(new BlockHeader(main2.hash(kryo), newArrayOfSize(0), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 3), new TreeSet())
+		val main1 = new Block(new BlockHeader(genesis.hash(kryo), new Hash(newArrayOfSize(0)), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 1), new TreeSet())
+		val main2 = new Block(new BlockHeader(main1.hash(kryo), new Hash(newArrayOfSize(0)), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 2), new TreeSet())
+		val main3 = new Block(new BlockHeader(main2.hash(kryo), new Hash(newArrayOfSize(0)), new Date(), new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16), 3), new TreeSet())
 		branch.blocks.addAll(main1, main2, main3)
 
 		Assert.assertTrue(branch.shouldRetarget(3))
