@@ -9,6 +9,14 @@ import java.math.BigInteger
 	
 	val List<Byte> bytes
 	
+	new(List<Byte> bytes) {
+		this.bytes = bytes
+	}
+	
+	new(String hex) {
+		this.bytes = Hashing.toByteArray(hex)
+	}
+	
 	override toString() {
 		return Hashing.toHexString(bytes)
 	}
