@@ -19,6 +19,7 @@ abstract class Miner extends Node {
 
 	val log = LoggerFactory.getLogger(Miner)
 	var BlockMutable pendingBlock
+	var boolean running
 
 	new(Configuration configuration, Supplier<Kryo> kryoSupplier, List<InetSocketAddress> trackers, int nodePort, KeyPair keys) {
 		super(configuration, kryoSupplier, trackers, nodePort, keys)
@@ -30,6 +31,7 @@ abstract class Miner extends Node {
 
 	override onSynchronised() {
 		new Thread([
+			running = true
 			kryoPool.run [ kryo |
 				pendingBlock = new BlockMutable(new BlockHeaderMutable(blockchain.mainBranch.blocks.last.header.hash(kryo), blockchain.mainBranch.blocks.last.header.target), new TreeSet())
 				pendingBlock.mutations.addAll(floatingMutations)
@@ -37,18 +39,21 @@ abstract class Miner extends Node {
 				mine(kryo, 0)
 				return null
 			]
-		], "Mining").start()
+		], "Mining") => [
+			daemon = true
+			start()
+		]
 		log.info("Mining started")
 	}
 
 	def mine(Kryo kryo, int startNonce) {
-		while(true) {
+		while(running) {
 			Thread.sleep(1000)
 			synchronized(pendingBlock) {
 				if(pendingBlock.mutations.size() > 0) {
 					var nonce = startNonce
 					var completed = false
-					while(!completed) {
+					while(!completed && running) {
 						pendingBlock.header.nonce = nonce
 						if(pendingBlock.header.immutable().isBelowTarget(kryo)) {
 							completed = true
@@ -106,6 +111,11 @@ abstract class Miner extends Node {
 
 	override getLog() {
 		return log
+	}
+	
+	override close() throws Exception {
+		super.close()
+		running = false
 	}
 
 }

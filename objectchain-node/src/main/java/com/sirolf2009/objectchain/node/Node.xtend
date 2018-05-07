@@ -332,8 +332,13 @@ abstract class Node implements AutoCloseable {
 			return
 		}
 		kryoPool.run [ kryo |
+			try {
 			if(blockchain.mainBranch.blocks.last().hash(kryo).equals(newBlock.hash(kryo))) {
 				return null
+			}
+			} catch(Exception e) {
+				log.error("failed ", e)
+				log.error(blockchain.toString())
 			}
 			// TODO Reject if duplicate of block we have in any of the three categories
 			try {
