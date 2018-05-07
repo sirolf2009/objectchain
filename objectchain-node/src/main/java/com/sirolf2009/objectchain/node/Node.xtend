@@ -393,6 +393,7 @@ abstract class Node implements AutoCloseable {
 					blockchain.mainBranch.addBlock(kryo, configuration, newBlock)
 					onBranchExpanded()
 					onBlockchainExpanded()
+					floatingMutations.removeAll(newBlock.getMutations())
 					broadcast(new NewBlock() => [
 						block = newBlock
 					], Optional.of(connection))
