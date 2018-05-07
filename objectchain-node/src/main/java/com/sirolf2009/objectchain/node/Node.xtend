@@ -9,14 +9,18 @@ import com.esotericsoftware.kryonet.FrameworkMessage.KeepAlive
 import com.esotericsoftware.kryonet.KryoSerialization
 import com.esotericsoftware.kryonet.Listener
 import com.esotericsoftware.kryonet.Server
+import com.sirolf2009.objectchain.common.BlockchainPersistence
 import com.sirolf2009.objectchain.common.exception.BlockVerificationException
 import com.sirolf2009.objectchain.common.exception.BranchExpansionException
 import com.sirolf2009.objectchain.common.exception.BranchVerificationException
+import com.sirolf2009.objectchain.common.exception.MutationVerificationException
+import com.sirolf2009.objectchain.common.interfaces.IHashable
 import com.sirolf2009.objectchain.common.model.Block
 import com.sirolf2009.objectchain.common.model.BlockChain
 import com.sirolf2009.objectchain.common.model.BlockHeader
 import com.sirolf2009.objectchain.common.model.Branch
 import com.sirolf2009.objectchain.common.model.Configuration
+import com.sirolf2009.objectchain.common.model.Hash
 import com.sirolf2009.objectchain.common.model.Mutation
 import com.sirolf2009.objectchain.network.KryoRegistrationNode
 import com.sirolf2009.objectchain.network.KryoRegistrationTracker
@@ -24,9 +28,12 @@ import com.sirolf2009.objectchain.network.node.NewBlock
 import com.sirolf2009.objectchain.network.node.NewMutation
 import com.sirolf2009.objectchain.network.node.SyncRequest
 import com.sirolf2009.objectchain.network.node.SyncResponse
+import com.sirolf2009.objectchain.network.tracker.TrackMe
 import com.sirolf2009.objectchain.network.tracker.TrackedNode
 import com.sirolf2009.objectchain.network.tracker.TrackerList
+import com.sirolf2009.objectchain.network.tracker.TrackerRequest
 import java.io.File
+import java.net.InetSocketAddress
 import java.security.KeyPair
 import java.util.ArrayList
 import java.util.Arrays
@@ -36,18 +43,13 @@ import java.util.Optional
 import java.util.Set
 import java.util.TreeSet
 import java.util.concurrent.ArrayBlockingQueue
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import java.util.function.Consumer
 import java.util.function.Supplier
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import com.sirolf2009.objectchain.common.BlockchainPersistence
-import java.net.InetSocketAddress
-import com.sirolf2009.objectchain.common.exception.MutationVerificationException
-import com.sirolf2009.objectchain.common.interfaces.IHashable
-import com.sirolf2009.objectchain.network.tracker.TrackMe
-import com.sirolf2009.objectchain.network.tracker.TrackerRequest
-import com.sirolf2009.objectchain.common.model.Hash
 
 @Accessors
 abstract class Node implements AutoCloseable {
@@ -60,6 +62,7 @@ abstract class Node implements AutoCloseable {
 	val int nodePort
 	val KeyPair keys
 
+	val ExecutorService workpool
 	val List<Client> clients
 	var Server server
 	var boolean synchronised
@@ -84,6 +87,7 @@ abstract class Node implements AutoCloseable {
 		this.keys = keys
 		this.floatingMutations = new TreeSet()
 		this.clients = new ArrayList()
+		this.workpool = createWorkPool()
 		val kryoFactory = new KryoFactory() {
 			override create() {
 				val kryo = kryoSupplier.get()
@@ -127,21 +131,39 @@ abstract class Node implements AutoCloseable {
 		server.addListener(new Listener() {
 
 			override synchronized connected(Connection connection) {
-				connection.name = connection.remoteAddressTCP.address.hostAddress + ":" + connection.remoteAddressTCP.port
-				log.info("{} connected to us", connection)
-				onNewConnection(server.kryo, connection)
+				workpool.execute [
+					try {
+						connection.name = connection.remoteAddressTCP.address.hostAddress + ":" + connection.remoteAddressTCP.port
+						log.info("{} connected to us", connection)
+						onNewConnection(server.kryo, connection)
+					} catch(Exception e) {
+						log.error("Failed to initialize new connection with {}", connection, e)
+					}
+				]
 			}
 
 			override received(Connection connection, Object object) {
-				if(object instanceof KeepAlive) {
-					return
-				}
-				handleNewObject(server.kryo, connection, object)
+				workpool.execute [
+					try {
+						if(object instanceof KeepAlive) {
+							return
+						}
+						handleNewObject(server.kryo, connection, object)
+					} catch(Exception e) {
+						log.error("Failed to handle new object {} from {}", object, connection, e)
+					}
+				]
 			}
 
 			override synchronized disconnected(Connection connection) {
-				log.info("{} disconnected from us", connection)
-				onDisconnected(connection)
+				workpool.execute [
+					try {
+						log.info("{} disconnected from us", connection)
+						onDisconnected(connection)
+					} catch(Exception e) {
+						log.error("Failed to disconnect from {}", connection, e)
+					}
+				]
 			}
 
 		})
@@ -162,27 +184,45 @@ abstract class Node implements AutoCloseable {
 			client.addListener(new Listener() {
 
 				override synchronized connected(Connection connection) {
-					synchronized(clients) {
-						clients.add(client)
-					}
-					connection.name = host + ":" + port
-					log.info("Connected to peer {}", connection)
-					onNewConnection(client.kryo, connection)
+					workpool.execute [
+						try {
+							synchronized(clients) {
+								clients.add(client)
+							}
+							connection.name = host + ":" + port
+							log.info("Connected to peer {}", connection)
+							onNewConnection(client.kryo, connection)
+						} catch(Exception e) {
+							log.error("Failed to initialize with peer {}:{}", host, port, e)
+						}
+					]
 				}
 
 				override received(Connection connection, Object object) {
-					if(object instanceof KeepAlive) {
-						return
-					}
-					handleNewObject(client.kryo, connection, object)
+					workpool.execute [
+						try {
+							if(object instanceof KeepAlive) {
+								return
+							}
+							handleNewObject(client.kryo, connection, object)
+						} catch(Exception e) {
+							log.error("Failed to initialize with peer {}:{}", host, port, e)
+						}
+					]
 				}
 
 				override synchronized disconnected(Connection connection) {
-					log.info("Disconnected from peer {}", connection)
-					synchronized(clients) {
-						clients.remove(client)
-					}
-					onDisconnected(connection)
+					workpool.execute [
+						try {
+							log.info("Disconnected from peer {}", connection)
+							synchronized(clients) {
+								clients.remove(client)
+							}
+							onDisconnected(connection)
+						} catch(Exception e) {
+							log.error("Failed to initialize with peer {}:{}", host, port, e)
+						}
+					]
 				}
 
 			})
@@ -203,7 +243,7 @@ abstract class Node implements AutoCloseable {
 			])
 		}
 	}
-	
+
 	def void onDisconnected(Connection connection) {
 	}
 
@@ -239,7 +279,7 @@ abstract class Node implements AutoCloseable {
 		if(verificationException !== null) {
 			log.warn("{} send mutation {}, but it could not be verified", connection, newMutation, verificationException)
 		}
-		
+
 		if(addMutation(newMutation.getMutation)) {
 			onMutationReceived(newMutation.mutation)
 			log.info("propagating new mutation")
@@ -411,13 +451,13 @@ abstract class Node implements AutoCloseable {
 
 	def void onOrphansExpanded() {
 	}
-	
+
 	def hash(IHashable object) {
 		kryoPool.run[object.hash(it)]
 	}
 
 	def submitMutation(Object object) {
-		val messageMutation = kryoPool.run[kryo| new Mutation(object, kryo, keys)]
+		val messageMutation = kryoPool.run[kryo|new Mutation(object, kryo, keys)]
 		floatingMutations.add(messageMutation)
 		broadcast(new NewMutation() => [
 			mutation = messageMutation
@@ -483,9 +523,13 @@ abstract class Node implements AutoCloseable {
 		return queue.take()
 	}
 
+	def createWorkPool() {
+		return Executors.newWorkStealingPool()
+	}
+
 	def save() {
 		kryoPool.run [ kryo |
-			val tmpFile = new File(saveFile.absolutePath+".tmp")
+			val tmpFile = new File(saveFile.absolutePath + ".tmp")
 			BlockchainPersistence.save(kryo, blockchain, tmpFile)
 			saveFile.delete()
 			tmpFile.renameTo(saveFile)
