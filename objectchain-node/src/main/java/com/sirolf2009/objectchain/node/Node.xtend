@@ -50,6 +50,7 @@ import java.util.function.Supplier
 import org.eclipse.xtend.lib.annotations.Accessors
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import com.sirolf2009.objectchain.common.exception.TrackerUnreachableException
 
 @Accessors
 abstract class Node implements AutoCloseable {
@@ -373,9 +374,9 @@ abstract class Node implements AutoCloseable {
 		}
 		kryoPool.run [ kryo |
 			try {
-			if(blockchain.mainBranch.blocks.last().hash(kryo).equals(newBlock.hash(kryo))) {
-				return null
-			}
+				if(blockchain.mainBranch.blocks.last().hash(kryo).equals(newBlock.hash(kryo))) {
+					return null
+				}
 			} catch(Exception e) {
 				log.error("failed ", e)
 				log.error(blockchain.toString())
@@ -486,42 +487,62 @@ abstract class Node implements AutoCloseable {
 	}
 
 	def getTrackedNodes() {
-		return trackers.map[getTrackedNodes(it)].map[tracked].flatten.toSet()
+		val trackerLists = trackers.map[
+			try {
+				return getTrackedNodes(it)
+			} catch(TrackerUnreachableException e) {
+				return e
+			}
+		]
+		val trackerResponses = trackerLists.filter[it instanceof TrackerList].map[it as TrackerList].map[tracked].flatten().toSet()
+		if(trackerResponses.size() > 0) {
+			return trackerResponses
+		} else {
+			val errorOpt = trackerLists.filter[it instanceof TrackerUnreachableException].map[it as TrackerUnreachableException].toList().stream().findFirst()
+			if(errorOpt.isPresent()) {
+				throw errorOpt.get()
+			}
+		}
+		return #{} 
 	}
 
 	def getTrackedNodes(InetSocketAddress tracker) {
-		log.info("Connecting to tracker {}", tracker)
-		val queue = new ArrayBlockingQueue<TrackerList>(1)
-		val client = new Client()
-		client.start()
+		try {
+			log.info("Connecting to tracker {}", tracker)
+			val queue = new ArrayBlockingQueue<TrackerList>(1)
+			val client = new Client()
+			client.start()
 
-		KryoRegistrationTracker.register(client.kryo)
+			KryoRegistrationTracker.register(client.kryo)
 
-		client.addListener(new Listener() {
+			client.addListener(new Listener() {
 
-			override connected(Connection connection) {
-				log.info("Connected to {}, sending request", tracker)
-				connection.sendTCP(new TrackerRequest())
-				connection.sendTCP(new TrackMe() => [
-					it.nodePort = nodePort
-				])
-			}
-
-			override received(Connection connection, Object object) {
-				if(object instanceof TrackerList) {
-					log.info("Received tracker response")
-					queue.add(object)
+				override connected(Connection connection) {
+					log.info("Connected to {}, sending request", tracker)
+					connection.sendTCP(new TrackerRequest())
+					connection.sendTCP(new TrackMe() => [
+						it.nodePort = nodePort
+					])
 				}
-			}
 
-			override disconnected(Connection connection) {
-				log.info("Disconnect from tracker {}", connection)
-			}
+				override received(Connection connection, Object object) {
+					if(object instanceof TrackerList) {
+						log.info("Received tracker response")
+						queue.add(object)
+					}
+				}
 
-		})
+				override disconnected(Connection connection) {
+					log.info("Disconnect from tracker {}", connection)
+				}
 
-		client.connect(5000, tracker.address.hostAddress, tracker.port)
-		return queue.take()
+			})
+
+			client.connect(5000, tracker.address.hostAddress, tracker.port)
+			return queue.take()
+		} catch(Exception e) {
+			throw new TrackerUnreachableException(tracker, e)
+		}
 	}
 
 	def createWorkPool() {

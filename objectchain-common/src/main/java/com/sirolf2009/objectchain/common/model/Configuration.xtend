@@ -21,7 +21,7 @@ import org.eclipse.xtend.lib.annotations.Accessors
 	/** The initial state of the blockchain */
 	val IState genesisState
 
-	@Accessors public static class Builder {
+	@Accessors static class Builder {
 
 		/** The amount of blocks that will maintain the target before recalculating */
 		var int targetValidity = 2016

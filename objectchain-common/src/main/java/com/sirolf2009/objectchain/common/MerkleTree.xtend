@@ -15,15 +15,15 @@ class MerkleTree {
 	
 	static val log = LoggerFactory.getLogger(MerkleTree)
 	
-	def public static Hash merkleTreeMutations(Kryo kryo, TreeSet<Mutation> hashes) {
+	def static Hash merkleTreeMutations(Kryo kryo, TreeSet<Mutation> hashes) {
 		return new Hash(merkleTree(hashes.map[hash(kryo).getBytes()].toList()))
 	}
 	
-	def public static String merkleTreeHex(List<String> hashes) {
+	def static String merkleTreeHex(List<String> hashes) {
 		return Hashing.toHexString(merkleTree(hashes.map[Hashing.toByteArray(it)]))
 	}
 
-	def public static List<Byte> merkleTree(List<List<Byte>> hashes) {
+	def static List<Byte> merkleTree(List<List<Byte>> hashes) {
 		log.debug(hashes.map[toHexString].join(", "))
 		if(hashes.size() == 0) {
 			throw new IllegalArgumentException("Cannot merkle tree an empty list")
@@ -40,7 +40,7 @@ class MerkleTree {
 		return merkleTree(newHashes)
 	}
 	
-	def public static List<Byte> hash(List<Byte> left, List<Byte> right) {
+	def static List<Byte> hash(List<Byte> left, List<Byte> right) {
 		return Hashing.doubleHash(left.reverseView(), right.reverseView()).reverse()
 	}
 
