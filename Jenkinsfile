@@ -6,10 +6,10 @@ pipeline {
         sh 'mvn clean install'
       }
     }
-    stage('Archive Test Results') {
-      steps {
-        junit 'target/surefire-reports/*.xml'
-      }
+    post {
+        always {
+            junit 'build/reports/**/*.xml'
+        }
     }
   }
 }
