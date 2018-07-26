@@ -3,13 +3,15 @@ pipeline {
   stages {
     stage('Compile') {
       steps {
-        sh 'mvn clean install'
+        sh '''export GPG_TTY=$(tty);
+mvn clean deploy -P release'''
+      }
+    }
+    stage('archive') {
+      steps {
+        junit(testResults: 'target/surefire-reports/*.xml', allowEmptyResults: true)
       }
     }
   }
-  post {
-      always {
-          junit '**/surefire-reports/**/*.xml'
-      }
-  }
 }
+
